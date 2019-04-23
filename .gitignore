@@ -1,2 +1,9 @@
+# Acquired images for calibration
 acquisitionStereo/
 acquisitionUS/
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
