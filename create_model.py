@@ -43,16 +43,17 @@ T_s_r = sym.Matrix([[c11,c12,c13,c14],[c21,c22,c23,c24],[c31,c32,c33,c34],
 u, v = sym.symbols('u v')
 
 # Symbolic variables for unknowns:
-# x1 -> sx, x2 -> sy
-# from T_I_S: x3 -> tx, x4 -> ty, x5 -> tz, x6 -> az, x7 -> ay, x8 -> ax
-# from T_R_H: x9 -> tx, x10 -> ty, x11 -> tz
+# x10 -> sx, x11 -> sy
+# from T_I_S: x4 -> tx, x5 -> ty, x6 -> tz, x7 -> az, x8 -> ay, x9 -> ax
+# from T_R_H: x1 -> tx, x2 -> ty, x3 -> tz
 x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11 = \
 sym.symbols('x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11')
 
 # Model: T_R_H * T_S_R* T_I_S * [sx*u, sy*v, 0, 1]
-f = T.subs({tx:x9,ty:x10,tz:x11,az:0,ay:0,ax:0})*T_s_r*T.subs({tx:x3,ty:x4,
-          tz:x5,az:x6,ay:x7,ax:x8})*sym.Matrix([x1*u,x2*v,0,1])
-f = f[:3,:] # Remove last element of vector which is 1
+f = T.subs({tx:x1,ty:x2,tz:x3,az:0,ay:0,ax:0})*T_s_r*T.subs({tx:x4,ty:x5,
+          tz:x6,az:x7,ay:x8,ax:x9})*sym.Matrix([x10*u,x11*v,0,1])
+
+f = sym.Matrix([sym.sqrt(f[0,0]**2+f[1,0]**2+f[2,0]**2)])
 
 # Jacobian of three equations
 Jf = sym.simplify(f.jacobian([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11]))
@@ -136,11 +137,6 @@ for i, (im1n, im2n) in enumerate(zip(I1,I2)):
                              c24:tvec[1,0],c31:Rm[2,0],c32:Rm[2,1],
                              c33:Rm[2,2],c34:tvec[2,0]}))
     
-    Jeq = Jeq.col_join(Jf.subs({u:crossP[i,0],v:crossP[i,1],c11:Rm[0,0],
-                             c12:Rm[0,1],c13:Rm[0,2],c14:tvec[0,0],
-                             c21:Rm[1,0],c22:Rm[1,1],c23:Rm[1,2],
-                             c24:tvec[1,0],c31:Rm[2,0],c32:Rm[2,1],
-                             c33:Rm[2,2],c34:tvec[2,0]}))
     
     # Draw axes in the first image
     rvec, _ = cv2.Rodrigues(Rm)
@@ -157,7 +153,6 @@ pts = np.array(pts)
 
 with open('model.pkl', 'wb') as file:
     pickle.dump(eq, file)
-    pickle.dump(Jeq, file)
     pickle.dump(pts, file)
     pickle.dump(T_S_R, file)
 #X = cv2.triangulatePoints(P1,P2,p1.reshape(-1,2).T,p2.reshape(-1,2).T)
