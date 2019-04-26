@@ -22,7 +22,7 @@ def T(tx, ty, tz, az, ay, ax):
 # load model file
 with open('model.pkl','rb') as file:
     f = pickle.load(file)
-    Jf = pickle.load(file)
+#    Jf = pickle.load(file)
     pts = pickle.load(file)
     T_S_R = pickle.load(file)
 
@@ -33,24 +33,24 @@ x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11 = \
 sym.symbols('x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11')
 
 f = sym.lambdify([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11], f)
-Jf = sym.lambdify([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11], Jf)
+#Jf = sym.lambdify([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11], Jf)
 
 
 def objfunc(x):
     return f(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],
-               x[10]).T.tolist()[0], \
-    Jf(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10])
+               x[10]).T.tolist()[0]
 
 
 # Solve problem using Levenberg-Marquardt algorithm
 #sol = root(objfunc, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], jac=True, method='lm')
-sol = root(objfunc, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], jac=True, method='lm',
-           options={'xtol':1e-20,'ftol':1e-20,'maxiter':50000})
+sol = root(objfunc, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], method='lm',
+           options={'ftol':1e-16,'xtol':1e-16,'gtol':1e-16,'maxiter':5000*2, 
+                    'eps':1e-19})
 print('\nCalculated parameters = \n{}'.format(sol.x))
 
-sx, sy = sol.x[:2]
-T_I_S = T(sol.x[2], sol.x[3], sol.x[4], sol.x[5], sol.x[6], sol.x[7])
-T_R_H = T(sol.x[8], sol.x[9], sol.x[10], 0, 0, 0)
+sx, sy = sol.x[9], sol.x[10]
+T_I_S = T(sol.x[3], sol.x[4], sol.x[5], sol.x[6], sol.x[7], sol.x[8])
+T_R_H = T(sol.x[0], sol.x[1], sol.x[2], 0, 0, 0)
 
 
 
