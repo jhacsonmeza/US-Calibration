@@ -3,6 +3,8 @@ import numpy as np
 import sympy as sym
 from scipy.optimize import root
 
+base = 'Calibration test 25-04-19/'
+
 def T(tx, ty, tz, az, ay, ax):
     Rx = np.array([[1,0,0],
                    [0,np.cos(ax),-np.sin(ax)],
@@ -20,9 +22,8 @@ def T(tx, ty, tz, az, ay, ax):
 
 
 # load model file
-with open('model.pkl','rb') as file:
+with open(base+'model.pkl','rb') as file:
     f = pickle.load(file)
-#    Jf = pickle.load(file)
     pts = pickle.load(file)
     T_S_R = pickle.load(file)
 
@@ -33,7 +34,6 @@ x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11 = \
 sym.symbols('x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11')
 
 f = sym.lambdify([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11], f)
-#Jf = sym.lambdify([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11], Jf)
 
 
 def objfunc(x):
@@ -44,7 +44,7 @@ def objfunc(x):
 # Solve problem using Levenberg-Marquardt algorithm
 #sol = root(objfunc, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], jac=True, method='lm')
 sol = root(objfunc, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], method='lm',
-           options={'ftol':1e-16,'xtol':1e-16,'gtol':1e-16,'maxiter':5000*2, 
+           options={'ftol':1e-16,'xtol':1e-16,'gtol':1e-16,'maxiter':5000, 
                     'eps':1e-19})
 print('\nCalculated parameters = \n{}'.format(sol.x))
 

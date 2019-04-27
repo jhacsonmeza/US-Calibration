@@ -7,6 +7,8 @@ import numpy as np
 import sympy as sym
 import scipy.io as sio
 
+base = 'Calibration test 25-04-19/'
+
 
 ##############################################################################
 # Create calibration model
@@ -54,13 +56,11 @@ f = T.subs({tx:x1,ty:x2,tz:x3,az:0,ay:0,ax:0})*T_s_r*T.subs({tx:x4,ty:x5,
           tz:x6,az:x7,ay:x8,ax:x9})*sym.Matrix([x10*u,x11*v,0,1])
 
 f = sym.Matrix([sym.sqrt(f[0,0]**2+f[1,0]**2+f[2,0]**2)])
-
-# Jacobian of three equations
-Jf = sym.simplify(f.jacobian([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11]))
+#f = f[:3,0]
 
 
 
-crossP = sio.loadmat('crossP.mat')['crossP']
+crossP = sio.loadmat(base+'crossP.mat')['crossP']
 
 
 
@@ -71,11 +71,11 @@ crossP = sio.loadmat('crossP.mat')['crossP']
 cv2.namedWindow('Detection', cv2.WINDOW_NORMAL)
 cv2.resizeWindow('Detection', 640*2, 512)
 
-I1 = sorted(glob.glob('acquisitionUS/L/*.jpg'), key=os.path.getmtime)
-I2 = sorted(glob.glob('acquisitionUS/R/*.jpg'), key=os.path.getmtime)
+I1 = sorted(glob.glob(base+'acquisitionUS/L/*.jpg'), key=os.path.getmtime)
+I2 = sorted(glob.glob(base+'acquisitionUS/R/*.jpg'), key=os.path.getmtime)
 
 # Load stereo calibration parameters
-Params = sio.loadmat('Params.mat')
+Params = sio.loadmat(base+'Params.mat')
 K1 = Params['K1']
 K2 = Params['K2']
 R = Params['R']
@@ -94,23 +94,21 @@ eq = sym.Matrix()
 Jeq = sym.Matrix()
 T_S_R = []
 pts =[]
+fail = False
 for i, (im1n, im2n) in enumerate(zip(I1,I2)):
     im1 = cv2.imread(im1n)
     im2 = cv2.imread(im2n)
     
     # Target detection
-    im1, c1 = target.detection(im1)
-    im2, c2 = target.detection(im2)
+    im1, c1, ret1 = target.detection(im1, True)
+    im2, c2, ret2 = target.detection(im2, True)
     
-    if len(c1) != 3:
-        print('\nCircles in image {} couldn\'t be detected'.format(
-                im1n.split('\\')[-1]))
-        continue
-    elif len(c2) != 3:
-        print('\nCircles in image {} couldn\'t be detected'.format(
-                im2n.split('\\')[-1]))
+    if not (ret1 and ret2):
+        print('\nCircles in image {} and {} couldn\'t be detected'.format(
+                im1n.split('\\')[-1], im2n.split('\\')[-1]))
         continue
     
+
     # Target labeling
     im1, org1, i1, j1 = target.label(im1,c1)
     im2, org2, i2, j2 = target.label(im2,c2)
@@ -144,14 +142,15 @@ for i, (im1n, im2n) in enumerate(zip(I1,I2)):
     img = target.drawAxes(im1.copy(), org1, axs)
     
     cv2.imshow('Detection',np.hstack([img,im2]))
-    if cv2.waitKey(100) & 0xFF == 27:
+    if cv2.waitKey(10) & 0xFF == 27:
         break
+        
 
 cv2.destroyAllWindows()
 pts = np.array(pts)
 
 
-with open('model.pkl', 'wb') as file:
+with open(base+'model.pkl', 'wb') as file:
     pickle.dump(eq, file)
     pickle.dump(pts, file)
     pickle.dump(T_S_R, file)
