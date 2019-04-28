@@ -38,7 +38,7 @@ def detection(im, th_im=False):
     # Convert im to gray, binarize with adaptive threshold
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     bw = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                               cv2.THRESH_BINARY,21,2)
+                               cv2.THRESH_BINARY,61,20)
     
     # Create structuring element, apply morphological opening operation
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
@@ -53,7 +53,8 @@ def detection(im, th_im=False):
     # Evaluate circularity criteria and take contours that meet it 
     # R = 4*pi*a/p^2. For a circle R = 1
     R = 4*np.pi*areas/perimeters**2
-    circ = np.array(contours)[(R > 0.85*R.max()) & (areas > 1000)]
+    circ = np.array(contours)[(R > 0.7*R.max())]
+    arr = areas[(R > 0.7*R.max())]
       
     
     # Compute centroids of each contour in circ
@@ -62,17 +63,37 @@ def detection(im, th_im=False):
         M = cv2.moments(cont)
         c.append([M['m10']/M['m00'],M['m01']/M['m00']])
     c = np.array(c)
+    
+    
+    # As targets are concentric circles, both circles have the same center,
+    # and distance between these centers should be zero
+    d = np.array([])
+    for i in range(len(c)-1):
+        d = np.append(d,np.linalg.norm(c[i]-c[i+1]))
       
+    # Take the first 3 contours with smaller distances 
+    ind = np.argsort(d)[:3]
+    c = c[ind]
+    ring = circ[ind]
     
-    # Draw bounding boxes in the detections
-    if th_im:
-        im = np.dstack([imo, imo, imo])
+    
+    # Check if detection succeeds or fail
+    if sum(arr[ind]) < 10:
+        ret = False
+    else:
+        ret = True
         
-    for cnt in circ:
-        x,y,w,h = cv2.boundingRect(cnt)
-        cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),3)
+        # Draw bounding boxes in the detections
+        if th_im:
+            im = np.dstack([imo, imo, imo])
+            
+        for cnt in ring:
+            x,y,w,h = cv2.boundingRect(cnt)
+            cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),3)
+
     
-    return im, c
+    
+    return im, c, ret
     
 
 def label(im,c):
