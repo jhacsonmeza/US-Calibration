@@ -1,6 +1,6 @@
 clear, clc
 
-imlist = dir('acquisitionUS\UScrop\*.jpg');
+imlist = dir('Calibration test 25-04-19\acquisitionUS\UScrop\*.jpg');
 
 crossP = zeros(numel(imlist), 2);
 for i = 1:numel(imlist)
