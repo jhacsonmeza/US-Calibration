@@ -246,6 +246,6 @@ def targetPose(P1, P2, p1, p2):
     
     
     R = np.array([xaxis,yaxis,zaxis]).T
-    t = X[:,0].reshape(3,-1)
+    t = X[:,0]
     
     return R, t
