@@ -135,4 +135,6 @@ err = []
 for i in range(len(pts)):
     phat = T_W_C @ T_P_W[i] @ T_I_P @ np.array([sx*pts[i,0],sy*pts[i,1],0,1])
     
-    err.append(np.linalg.norm(phat[:3]-np.array([0,0,0])))
+    err.append(np.linalg.norm(phat[:3]))
+
+print('\nPrecision = {} mm'.format(sum(err)/len(err)))
