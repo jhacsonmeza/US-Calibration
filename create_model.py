@@ -1,7 +1,7 @@
 import pickle
 import sympy as sym
 
-base = 'Calibration test 11-04-19/'
+base = 'Calibration test 30-04-19/'
 
 
 # Variables for rotation matrices and general transformation matrix T_i_j
@@ -45,10 +45,10 @@ sym.symbols('x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11')
 f = T.subs({tx:x1,ty:x2,tz:x3,az:0,ay:0,ax:0})*T_p_w*T.subs({tx:x4,ty:x5,
           tz:x6,az:x7,ay:x8,ax:x9})*sym.Matrix([x10*u,x11*v,0,1])
 
-f = sym.Matrix([sym.sqrt(f[0,0]**2+f[1,0]**2+f[2,0]**2)])
-Jf = f.jacobian([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11])
-#f = f[:3,0]
+#f = sym.Matrix([sym.sqrt(f[0,0]**2+f[1,0]**2+f[2,0]**2)])
 #Jf = f.jacobian([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11])
+f = f[:3,0]
+Jf = f.jacobian([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11])
 
 
 

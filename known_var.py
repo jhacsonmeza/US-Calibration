@@ -8,7 +8,7 @@ import scipy.io as sio
 
 
 # Root path
-base = 'Calibration test 25-04-19/'
+base = 'Calibration test 30-04-19/'
 
 # read cross-wire coordinates
 crossP = sio.loadmat(base+'crossP.mat')['crossP']
