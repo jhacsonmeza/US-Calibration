@@ -44,8 +44,8 @@ for i, (im1n, im2n) in enumerate(zip(I1,I2)):
     im2 = cv2.imread(im2n)
     
     # Target detection
-    im1, c1, ret1 = target.detection(im1, True)
-    im2, c2, ret2 = target.detection(im2, True)
+    im1, c1, ret1 = target.detection(im1, True, 1500, True)
+    im2, c2, ret2 = target.detection(im2, True, 1500, True)
     
     if not (ret1 and ret2):
         print('\nCircles in image {} and {} couldn\'t be detected'.format(
