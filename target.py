@@ -21,24 +21,34 @@ def dst(l,p):
     return abs(l[0]*p[:,0]+l[1]*p[:,1]+l[2])/np.sqrt(l[0]**2+l[1]**2)
 
 
-def detection(im, th_im=False):
+def detection(im, global_th=False, th_a=1500, th_im=False):
     '''
     Function for detection of 3 concentric circle targets
     
     input:
         im: image where targets will be detected
+        global_th: True if binarize image usign global thresholding with the
+                    Otsu method. False if use (local) adaptive thresholding
+        th_a: Threshold area of detected objects used to evaluate whether 
+                detection succeeds or fail
         th_im: True if return thresholdized image with bounding boxes,
                 False if not
         
     output:
         * image with drawn bounding boxes
         * 3 x 2 matrix with image coordinates of each target
+        * True if detection succeeds and False if fail
     '''
     
-    # Convert im to gray, binarize with adaptive threshold
+    # Convert im to gray, binarize with adaptive threshold or global Otsu
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    bw = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                               cv2.THRESH_BINARY,61,20)
+    
+    if global_th:
+        _,bw = cv2.threshold(gray,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    else:
+        bw = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                   cv2.THRESH_BINARY,61,20)
+    
     
     # Create structuring element, apply morphological opening operation
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
@@ -78,18 +88,15 @@ def detection(im, th_im=False):
     
     
     # Check if detection succeeds or fail
-    if sum(arr[ind]) < 10:
-        ret = False
-    else:
-        ret = True
+    ret = False if sum(arr[ind]) < th_a else True
         
-        # Draw bounding boxes in the detections
-        if th_im:
-            im = np.dstack([imo, imo, imo])
-            
-        for cnt in ring:
-            x,y,w,h = cv2.boundingRect(cnt)
-            cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),3)
+    # Draw bounding boxes in the detections
+    if th_im:
+        im = np.dstack([imo, imo, imo])
+        
+    for cnt in ring:
+        x,y,w,h = cv2.boundingRect(cnt)
+        cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),3)
 
     
     
