@@ -3,7 +3,7 @@ import numpy as np
 import sympy as sym
 from scipy.optimize import root
 
-base = 'Calibration test 30-04-19/'
+base = 'Calibration test 08-05-19/'
 
 def T(tx, ty, tz, az, ay, ax):
     Rx = np.array([[1,0,0],

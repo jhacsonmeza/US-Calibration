@@ -10,11 +10,11 @@ import cv2
 import glob
 
 
-base = 'Calibration test 30-04-19/'
+base = 'Calibration test 08-05-19/'
 
 
 
-I = sorted(glob.glob(base+'acquisitionUS/US/*.jpg'), key=os.path.getmtime)
+I = sorted(glob.glob(base+'acquisitionUS/US/*.bmp'), key=os.path.getmtime)
 
 storage_path = base+'acquisitionUS/UScrop'
 

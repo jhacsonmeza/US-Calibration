@@ -8,7 +8,7 @@ import scipy.io as sio
 
 
 # Root path
-base = 'Calibration test 30-04-19/'
+base = 'Calibration test 08-05-19/'
 
 # read cross-wire coordinates
 crossP = sio.loadmat(base+'crossP.mat')['crossP']
@@ -18,8 +18,8 @@ cv2.namedWindow('Detection', cv2.WINDOW_NORMAL)
 cv2.resizeWindow('Detection', 640*2, 512)
 
 # Read left and right images of the target
-I1 = sorted(glob.glob(base+'acquisitionUS/L/*.jpg'), key=os.path.getmtime)
-I2 = sorted(glob.glob(base+'acquisitionUS/R/*.jpg'), key=os.path.getmtime)
+I1 = sorted(glob.glob(base+'acquisitionUS/L/*.bmp'), key=os.path.getmtime)
+I2 = sorted(glob.glob(base+'acquisitionUS/R/*.bmp'), key=os.path.getmtime)
 
 # Load stereo calibration parameters
 Params = sio.loadmat(base+'Params.mat')
