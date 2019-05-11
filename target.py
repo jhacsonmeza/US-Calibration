@@ -112,7 +112,7 @@ def detection(im, global_th=False, th_a=1500, th_im=False):
     # Adjust a circle in the contours and save the radius
     r = np.array([])
     for cnt  in circ:
-        (x,y),radius = cv2.minEnclosingCircle(cnt)
+        _, radius = cv2.minEnclosingCircle(cnt)
         r = np.append(r,radius)
         
     
@@ -121,20 +121,20 @@ def detection(im, global_th=False, th_a=1500, th_im=False):
     # approximately the same values. 
     # Subtracting and dividing by the median in each feature measured and 
     # adding them, the three smaller values are the three circles.
-    
-    # Subtracting and dividing by the median in each feature
-    # measured, the three smaller values.
     v = abs(np.median(areas) - areas)/np.median(areas) + \
     abs(np.median(R) - R)/np.median(R) + abs(np.median(r) - r)/np.median(r)
     
     # Take the three smaller elements of v
     ind = np.argsort(v)[:3]
-    c = c[ind]
-    circ = circ[ind]
+    c = c[ind] # Update centroids
+    circ = circ[ind] # Update circle contours
     
     
-    # Check if detection succeeds or fail
-    ret = False if sum(np.sort(v)[:3] > 0.3) else True
+    # Check if detection succeeds or fail.
+    # If at least one element in v is larger than 0.35, the three circles were
+    # not detected. This threshold value is empirical.
+    ret = False if sum(v[ind] > 0.35) else True
+    
         
     # Draw bounding boxes in the detections
     if th_im:
