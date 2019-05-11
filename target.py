@@ -21,7 +21,7 @@ def dst(l,p):
     return abs(l[0]*p[:,0]+l[1]*p[:,1]+l[2])/np.sqrt(l[0]**2+l[1]**2)
 
 
-def detection(im, global_th=False, th_a=1500, th_im=False):
+def detection(im, global_th=True, th_im=False):
     '''
     Function for detection of 3 concentric circle targets
     
@@ -29,8 +29,6 @@ def detection(im, global_th=False, th_a=1500, th_im=False):
         im: image where targets will be detected
         global_th: True if binarize image usign global thresholding with the
                     Otsu method. False if use (local) adaptive thresholding
-        th_a: Threshold area of detected objects used to evaluate whether 
-                detection succeeds or fail
         th_im: True if return thresholdized image with bounding boxes,
                 False if not
         
@@ -83,7 +81,7 @@ def detection(im, global_th=False, th_a=1500, th_im=False):
             M = cv2.moments(cnt)
             c.append([M['m10']/M['m00'],M['m01']/M['m00']])
     
-    # Convert lists to numpy array
+    # Convert lists to numpy arrays
     c = np.array(c)
     conts = np.array(conts)
     areas = np.array(areas)
@@ -146,7 +144,7 @@ def detection(im, global_th=False, th_a=1500, th_im=False):
 
     
     
-    return im, c, ret
+    return ret, im, c
     
 
 def label(im,c):
