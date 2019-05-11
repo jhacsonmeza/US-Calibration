@@ -54,47 +54,93 @@ def detection(im, global_th=False, th_a=1500, th_im=False):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
     imo = cv2.morphologyEx(bw,cv2.MORPH_OPEN,kernel)
     
-    # Compute contours and then areas and perimeters of it.
+    # Compute contours
     _,contours,_ = cv2.findContours(imo,cv2.RETR_TREE,
                                     cv2.CHAIN_APPROX_SIMPLE)
-    areas = np.array([cv2.contourArea(c) for c in contours])
-    perimeters = np.array([cv2.arcLength(c,1) for c in contours])
     
-    # Evaluate circularity criteria and take contours that meet it 
-    # R = 4*pi*a/p^2. For a circle R = 1
-    R = 4*np.pi*areas/perimeters**2
-    circ = np.array(contours)[(R > 0.7*R.max())]
-    arr = areas[(R > 0.7*R.max())]
-      
-    
-    # Compute centroids of each contour in circ
+    # Loop over the contours, approximate the contour with a reduced set of 
+    # points and save contour if meets certain conditions with its centroid
+    # area and perimeter
     c = []
-    for cont in circ:
-        M = cv2.moments(cont)
-        c.append([M['m10']/M['m00'],M['m01']/M['m00']])
+    conts = []
+    areas = []
+    perimeters = []
+    for cnt in contours:
+        # Compute perimeter and approximate contour
+        perimeter = cv2.arcLength(cnt, True)
+        approx = cv2.approxPolyDP(cnt, 0.01*perimeter, True)
+        
+        # Compute area
+        area = cv2.contourArea(cnt)
+        
+        # Check if approximated contour is stored with its area, perimeter
+        # and centroid
+        if (len(approx) > 5) & (area > 30) & (area < 4000):
+            conts.append(cnt)
+            areas.append(area)
+            perimeters.append(perimeter)
+            
+            M = cv2.moments(cnt)
+            c.append([M['m10']/M['m00'],M['m01']/M['m00']])
+    
+    # Convert lists to numpy array
     c = np.array(c)
+    conts = np.array(conts)
+    areas = np.array(areas)
+    perimeters = np.array(perimeters)
     
     
-    # As targets are concentric circles, both circles have the same center,
-    # and distance between these centers should be zero
+    
+    # As targets are concentric circles, both circles have the same coordinate 
+    # center, and distance between these centers should be zero
     d = np.array([])
     for i in range(len(c)-1):
         d = np.append(d,np.linalg.norm(c[i]-c[i+1]))
       
-    # Take the first 3 contours with smaller distances 
-    ind = np.argsort(d)[:3]
+    # Take the first 5 contours with smaller neighboring centers distances,
+    # which would be potential circles
+    ind = np.argsort(d)[:5] # Index of smaller distances
     c = c[ind]
-    ring = circ[ind]
+    circ = conts[ind] # Potential 5 contours to be circles
+    areas = areas[ind]
+    perimeters = perimeters[ind]
+    
+    
+    # Evaluate circularity criteria. For a circle R = 1
+    R = 4*np.pi*areas/perimeters**2
+    
+    # Adjust a circle in the contours and save the radius
+    r = np.array([])
+    for cnt  in circ:
+        (x,y),radius = cv2.minEnclosingCircle(cnt)
+        r = np.append(r,radius)
+        
+    
+    # To take the three circles between the five contours, area, circularity
+    # and the adjusted radius in three of the five contours should have 
+    # approximately the same values. 
+    # Subtracting and dividing by the median in each feature measured and 
+    # adding them, the three smaller values are the three circles.
+    
+    # Subtracting and dividing by the median in each feature
+    # measured, the three smaller values.
+    v = abs(np.median(areas) - areas)/np.median(areas) + \
+    abs(np.median(R) - R)/np.median(R) + abs(np.median(r) - r)/np.median(r)
+    
+    # Take the three smaller elements of v
+    ind = np.argsort(v)[:3]
+    c = c[ind]
+    circ = circ[ind]
     
     
     # Check if detection succeeds or fail
-    ret = False if sum(arr[ind]) < th_a else True
+    ret = False if sum(np.sort(v)[:3] > 0.3) else True
         
     # Draw bounding boxes in the detections
     if th_im:
         im = np.dstack([imo, imo, imo])
         
-    for cnt in ring:
+    for cnt in circ:
         x,y,w,h = cv2.boundingRect(cnt)
         cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),3)
 
