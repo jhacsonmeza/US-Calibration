@@ -143,7 +143,6 @@ def detection(im, global_th=True, th_im=False):
         cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),3)
 
     
-    
     return ret, im, c
     
 
@@ -174,18 +173,19 @@ def label(im,c):
         # with the smaller dot product
         dot = np.dot(pt2-pt1,pt3-pt1)
         if a == 0:
-                dot_min = dot
-                org = pt1
-                p1 = pt2
-                p2 = pt3
-                
-                a = 1
-                continue
+            dot_min = dot
+            org = pt1
+            p1 = pt2
+            p2 = pt3
+            
+            a = 1
+            continue
+            
         if dot_min > dot:
-                dot_min = dot
-                org = pt1
-                p1 = pt2
-                p2 = pt3
+            dot_min = dot
+            org = pt1
+            p1 = pt2
+            p2 = pt3
     
     # Now we are sure that org is the right origin coordinate, let's 
     # figure out which is the correct x and y points using a criteria of 
@@ -244,6 +244,7 @@ def drawAxes(img, origin, imgpts):
     img = cv2.line(img,corner,tuple(np.int32(imgpts[0].ravel())), (255,0,0),5)
     img = cv2.line(img,corner,tuple(np.int32(imgpts[1].ravel())), (0,255,0),5)
     img = cv2.line(img,corner,tuple(np.int32(imgpts[2].ravel())), (0,0,255),5)
+    
     return img
 
 
@@ -259,14 +260,19 @@ def drawCub(img, imgpts):
     output:
         image with cube drawn
     '''
+    
     imgpts = np.int32(imgpts).reshape(-1,2)
+    
     # draw ground floor in green
     img = cv2.drawContours(img, [imgpts[:4]],-1,(0,255,0),-3)
+    
     # draw pillars in blue color
     for i,j in zip(range(4),range(4,8)):
         img = cv2.line(img, tuple(imgpts[i]), tuple(imgpts[j]),(255),3)
+    
     # draw top layer in red color
     img = cv2.drawContours(img, [imgpts[4:]],-1,(0,0,255),3)
+    
     return img
 
 
