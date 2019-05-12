@@ -44,8 +44,8 @@ for i, (im1n, im2n) in enumerate(zip(I1,I2)):
     im2 = cv2.imread(im2n)
     
     # Target detection
-    ret1, im1, c1 = target.detection(im1)
-    ret2, im2, c2 = target.detection(im2)
+    ret1, im1, c1 = target.detect(im1)
+    ret2, im2, c2 = target.detect(im2)
     
     if not (ret1 and ret2):
         print('\nCircles in image {} and {} couldn\'t be detected'.format(
@@ -68,7 +68,7 @@ for i, (im1n, im2n) in enumerate(zip(I1,I2)):
     p2 = p2.reshape(-1,2).T
     
     # Target pose estimation
-    Rmat, tvec = target.targetPose(P1, P2, p1, p2)
+    Rmat, tvec = target.getPose(P1, P2, p1, p2)
     
     # Save pose and cross-wire coordinates
     T_P_W.append(np.r_[np.c_[Rmat, tvec], np.array([[0,0,0,1]])])
@@ -80,7 +80,7 @@ for i, (im1n, im2n) in enumerate(zip(I1,I2)):
     img = target.drawAxes(im1.copy(), org1, axs)
     
     cv2.imshow('Detection',np.hstack([img,im2]))
-    if cv2.waitKey(10) & 0xFF == 27:
+    if cv2.waitKey(500) & 0xFF == 27:
         break
         
 

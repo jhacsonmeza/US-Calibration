@@ -21,7 +21,7 @@ def dst(l,p):
     return abs(l[0]*p[:,0]+l[1]*p[:,1]+l[2])/np.sqrt(l[0]**2+l[1]**2)
 
 
-def detection(im, global_th=True, th_im=False):
+def detect(im, global_th=True, th_im=False):
     '''
     Function for detection of 3 concentric circle targets
     
@@ -276,7 +276,7 @@ def drawCub(img, imgpts):
     return img
 
 
-def targetPose(P1, P2, p1, p2):
+def getPose(P1, P2, p1, p2):
     '''
     Function to compute pose of target
     
@@ -301,8 +301,8 @@ def targetPose(P1, P2, p1, p2):
     
     zaxis = np.cross(xaxis, yaxis) # Unitary vector pointing to z direction
     
-    
-    R = np.array([xaxis,yaxis,zaxis]).T
+    # Build rotation matrix and translation vector
+    R = np.c_[xaxis,yaxis,zaxis]
     t = X[:,0]
     
     return R, t
