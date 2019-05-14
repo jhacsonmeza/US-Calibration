@@ -10,8 +10,6 @@ import scipy.io as sio
 # Root path
 base = 'Calibration test 08-05-19/'
 
-# read cross-wire coordinates
-crossP = sio.loadmat(base+'crossP.mat')['crossP']
 
 # Set window name and size
 cv2.namedWindow('Detection', cv2.WINDOW_NORMAL)
@@ -37,9 +35,8 @@ P2 = K2 @ np.c_[R, t]
 axes = 40*np.array([[1.,0,0], [0,1.,0], [0,0,1.]]) # axes for drawAxes
 
 
-pts =[]
 T_P_W = []
-for i, (im1n, im2n) in enumerate(zip(I1,I2)):
+for im1n, im2n in zip(I1,I2):
     im1 = cv2.imread(im1n)
     im2 = cv2.imread(im2n)
     
@@ -72,7 +69,6 @@ for i, (im1n, im2n) in enumerate(zip(I1,I2)):
     
     # Save pose and cross-wire coordinates
     T_P_W.append(np.r_[np.c_[Rmat, tvec], np.array([[0,0,0,1]])])
-    pts.append(crossP[i])
     
     # Draw axes in the first image
     rvec, _ = cv2.Rodrigues(Rmat)
@@ -85,9 +81,7 @@ for i, (im1n, im2n) in enumerate(zip(I1,I2)):
         
 
 cv2.destroyAllWindows()
-pts = np.array(pts)
 
 # Save variables
-with open(base+'known_variables.pkl', 'wb') as file:
-    pickle.dump(pts, file)
+with open(base+'probe_pose.pkl', 'wb') as file:
     pickle.dump(T_P_W, file)
