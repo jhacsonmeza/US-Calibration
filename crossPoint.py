@@ -13,7 +13,7 @@ import scipy.io as sio
 from matplotlib import pyplot as plt
 
 
-base = 'Calibration test 08-05-19/'
+base = 'Calibration test 21-05-19 part1/'
 
 
 I = sorted(glob.glob(base+'acquisitionUS/UScrop/*.bmp'), key=os.path.getmtime)

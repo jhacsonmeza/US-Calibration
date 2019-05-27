@@ -10,7 +10,7 @@ import cv2
 import glob
 
 
-base = 'Calibration test 08-05-19/'
+base = 'Calibration test 21-05-19 part1/'
 
 
 

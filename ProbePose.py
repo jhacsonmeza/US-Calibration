@@ -8,7 +8,7 @@ import scipy.io as sio
 
 
 # Root path
-base = 'Calibration test 08-05-19/'
+base = 'Calibration test 21-05-19 part1/'
 
 
 # Set window name and size
