@@ -42,15 +42,18 @@ class Calibration:
     '''
     
     
-    def __init__(self, pts, T_P_W):
+    def __init__(self, pts=None, T_P_W=None):
         '''
-        Init known variables needed in the calibration process.
+        Init known variables needed in the calibration process if are
+        provided in the construction of the object. By default are None.
         
         Also, init symbolic variables used in the calibration equations to
         construct and solve.
         '''
         
-        self.setData(pts, T_P_W)
+        # If provided, init pts and T_P_W
+        if pts is not None and T_P_W is not None:
+            self.setData(pts, T_P_W)
         
         
         # Symbolic variables for known transformation T_P_W
