@@ -144,6 +144,143 @@ def detect(im, global_th=True, th_im=False):
 
     
     return ret, im, c
+
+
+
+
+
+def getPose3D(P1, P2, c1, c2):
+    '''
+    Function to compute pose of target
+    
+    input:
+        P1: Pose camera 1
+        P2: Pose camera 2
+        p1: n x 2 array with center coordinates of targets in image 1
+        p2: n x 2 array with center coordinates of targets in image 2
+        
+    output:
+        R: rotation matrix
+        t: translation vector
+    '''
+    
+#    X1 = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),c2[0].reshape(2,-1))
+#    X2 = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),c2[1].reshape(2,-1))
+#    X3 = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),c2[2].reshape(2,-1))
+    
+    d = np.array([])
+    for p2 in c2:
+        # Triangulate
+        X = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),p2.reshape(2,-1))
+        
+        # Reproject Points
+        x = P1 @ X
+        x = x[:2]/x[-1]
+        
+        d = np.append(d, np.linalg.norm(x.flatten()-c1[0]))
+    
+    ind = np.argsort(d)
+    X0 = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),
+                               c2[ind[0]].reshape(2,-1))
+    X0 = X0[:3]/X0[-1]
+    
+    
+    
+    
+    d = np.array([])
+    c22 = c2[ind[-2:]]
+    for p2 in c22:
+        # Triangulate
+        X = cv2.triangulatePoints(P1,P2,c1[1].reshape(2,-1),p2.reshape(2,-1))
+        
+        # Reproject Points
+        x = P1 @ X
+        x = x[:2]/x[-1]
+        
+        d = np.append(d, np.linalg.norm(x.flatten()-c1[1]))
+    
+    ind = np.argsort(d)
+    X1 = cv2.triangulatePoints(P1,P2,c1[1].reshape(2,-1),
+                               c22[ind[0]].reshape(2,-1))
+    X1 = X1[:3]/X1[-1]
+    
+    
+    X2 = cv2.triangulatePoints(P1,P2,c1[2].reshape(2,-1),
+                               c22[ind[1]].reshape(2,-1))
+    X2 = X2[:3]/X2[-1]
+    
+    
+    d1 = np.linalg.norm(X0-X1)
+    d2 = np.linalg.norm(X0-X2)
+    d3 = np.linalg.norm(X1-X2)
+    
+#    ind = np.argsort(np.array([d1, d2, d3]))
+#    if 
+    
+    
+    if (d1 < d2) & (d1 < d3):
+        y = X2
+#        orgim = P1 @ np.r_[X2, [[1]]]
+#        orgim = orgim[:2]/orgim[-1]
+        if d2 < d3:
+            x = X1
+            org = X0
+            
+            orgim = P1 @ np.r_[X0, [[1]]]
+            orgim = orgim[:2]/orgim[-1]
+        else:
+            org = X1
+            x = X0
+            
+            orgim = P1 @ np.r_[X1, [[1]]]
+            orgim = orgim[:2]/orgim[-1]
+            
+    if (d2 < d1) & (d2 < d3):
+        y = X1
+        
+        if d1 < d3:
+            x = X2
+            org = X0
+            
+            orgim = P1 @ np.r_[X0, [[1]]]
+            orgim = orgim[:2]/orgim[-1]
+        else:
+            org = X2
+            x = X0
+            
+            orgim = P1 @ np.r_[X2, [[1]]]
+            orgim = orgim[:2]/orgim[-1]
+            
+    if (d3 < d1) & (d3 < d2):
+        y = X0
+        if d1 < d2:
+            x = X2
+            org = X1
+            
+            orgim = P1 @ np.r_[X1, [[1]]]
+            orgim = orgim[:2]/orgim[-1]
+        else:
+            org = X2
+            x = X1
+            
+            orgim = P1 @ np.r_[X2, [[1]]]
+            orgim = orgim[:2]/orgim[-1]
+    
+    
+        
+    xaxis = (x-org).flatten() # Vector pointing to x direction
+    xaxis = xaxis/np.linalg.norm(xaxis) # Conversion to unitary
+    
+    yaxis = (y-org).flatten() # Vector pointing to y direction
+    yaxis = yaxis/np.linalg.norm(yaxis) # Conversion to unitary
+    
+    zaxis = np.cross(xaxis, yaxis) # Unitary vector pointing to z direction
+    
+    # Build rotation matrix and translation vector
+    R = np.c_[xaxis,yaxis,zaxis]
+    t = org
+    
+    return R, t, orgim.flatten()
     
 
 def label(im,c):
