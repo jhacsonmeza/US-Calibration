@@ -274,5 +274,10 @@ class Calibration:
         sol = root(objfunc, x0, jac=True, method='lm',
                    options={'ftol':1e-16,'xtol':1e-16,'gtol':1e-16,
                             'maxiter':5000,'eps':1e-19})
+    
+        # Measure RMS error
+        fmin = eq(sol.x[0],sol.x[1],sol.x[2],sol.x[3],sol.x[4],sol.x[5],
+                  sol.x[6],sol.x[7],sol.x[8],sol.x[9],sol.x[10])
+        rms = np.sqrt(np.mean(np.array(fmin)**2))
         
-        return sol.x.tolist()
+        return sol.x.tolist(), rms
