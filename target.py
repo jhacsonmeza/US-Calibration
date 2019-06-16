@@ -146,144 +146,7 @@ def detect(im, global_th=True, th_im=False):
     return ret, im, c
 
 
-
-
-
-def getPose3D(P1, P2, c1, c2):
-    '''
-    Function to compute pose of target
-    
-    input:
-        P1: Pose camera 1
-        P2: Pose camera 2
-        p1: n x 2 array with center coordinates of targets in image 1
-        p2: n x 2 array with center coordinates of targets in image 2
-        
-    output:
-        R: rotation matrix
-        t: translation vector
-    '''
-    
-#    X1 = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),c2[0].reshape(2,-1))
-#    X2 = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),c2[1].reshape(2,-1))
-#    X3 = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),c2[2].reshape(2,-1))
-    
-    d = np.array([])
-    for p2 in c2:
-        # Triangulate
-        X = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),p2.reshape(2,-1))
-        
-        # Reproject Points
-        x = P1 @ X
-        x = x[:2]/x[-1]
-        
-        d = np.append(d, np.linalg.norm(x.flatten()-c1[0]))
-    
-    ind = np.argsort(d)
-    X0 = cv2.triangulatePoints(P1,P2,c1[0].reshape(2,-1),
-                               c2[ind[0]].reshape(2,-1))
-    X0 = X0[:3]/X0[-1]
-    
-    
-    
-    
-    d = np.array([])
-    c22 = c2[ind[-2:]]
-    for p2 in c22:
-        # Triangulate
-        X = cv2.triangulatePoints(P1,P2,c1[1].reshape(2,-1),p2.reshape(2,-1))
-        
-        # Reproject Points
-        x = P1 @ X
-        x = x[:2]/x[-1]
-        
-        d = np.append(d, np.linalg.norm(x.flatten()-c1[1]))
-    
-    ind = np.argsort(d)
-    X1 = cv2.triangulatePoints(P1,P2,c1[1].reshape(2,-1),
-                               c22[ind[0]].reshape(2,-1))
-    X1 = X1[:3]/X1[-1]
-    
-    
-    X2 = cv2.triangulatePoints(P1,P2,c1[2].reshape(2,-1),
-                               c22[ind[1]].reshape(2,-1))
-    X2 = X2[:3]/X2[-1]
-    
-    
-    d1 = np.linalg.norm(X0-X1)
-    d2 = np.linalg.norm(X0-X2)
-    d3 = np.linalg.norm(X1-X2)
-    
-#    ind = np.argsort(np.array([d1, d2, d3]))
-#    if 
-    
-    
-    if (d1 < d2) & (d1 < d3):
-        y = X2
-#        orgim = P1 @ np.r_[X2, [[1]]]
-#        orgim = orgim[:2]/orgim[-1]
-        if d2 < d3:
-            x = X1
-            org = X0
-            
-            orgim = P1 @ np.r_[X0, [[1]]]
-            orgim = orgim[:2]/orgim[-1]
-        else:
-            org = X1
-            x = X0
-            
-            orgim = P1 @ np.r_[X1, [[1]]]
-            orgim = orgim[:2]/orgim[-1]
-            
-    if (d2 < d1) & (d2 < d3):
-        y = X1
-        
-        if d1 < d3:
-            x = X2
-            org = X0
-            
-            orgim = P1 @ np.r_[X0, [[1]]]
-            orgim = orgim[:2]/orgim[-1]
-        else:
-            org = X2
-            x = X0
-            
-            orgim = P1 @ np.r_[X2, [[1]]]
-            orgim = orgim[:2]/orgim[-1]
-            
-    if (d3 < d1) & (d3 < d2):
-        y = X0
-        if d1 < d2:
-            x = X2
-            org = X1
-            
-            orgim = P1 @ np.r_[X1, [[1]]]
-            orgim = orgim[:2]/orgim[-1]
-        else:
-            org = X2
-            x = X1
-            
-            orgim = P1 @ np.r_[X2, [[1]]]
-            orgim = orgim[:2]/orgim[-1]
-    
-    
-        
-    xaxis = (x-org).flatten() # Vector pointing to x direction
-    xaxis = xaxis/np.linalg.norm(xaxis) # Conversion to unitary
-    
-    yaxis = (y-org).flatten() # Vector pointing to y direction
-    yaxis = yaxis/np.linalg.norm(yaxis) # Conversion to unitary
-    
-    zaxis = np.cross(xaxis, yaxis) # Unitary vector pointing to z direction
-    
-    # Build rotation matrix and translation vector
-    R = np.c_[xaxis,yaxis,zaxis]
-    t = org
-    
-    return R, t, orgim.flatten()
-    
-
-def label(im,c):
+def centers3D(P1, P2, c1, c2):
     '''
     Function to label the different cocenctric circles as 0, x and y, where 0
     represent the origin of the coordinate system, x the direction in the x
@@ -300,68 +163,59 @@ def label(im,c):
         * y label coordinate
     '''
     
-    # Permutation with all possible combination of orders in which matrix
-    #  centers can come
+    C = []
+    for p in c1:
+        d = np.array([])
+        pts3D = []
+        for p1, p2 in itertools.product([p],c2):
+            # Triangulate
+            X = cv2.triangulatePoints(P1,P2,p1.reshape(2,-1),p2.reshape(2,-1))
+            
+            # Reproject Points
+            x = P1 @ X
+            x = x[:2]/x[-1]
+            
+            # Save point and convert from homogeneous to Euclidean
+            pts3D.append(X[:3]/X[-1])
+            
+            # Reprojection error in pixels
+            d = np.r_[d, np.linalg.norm(x.flatten()-p1)]
+        
+        ind = np.argsort(d)[0]
+        C.append(np.array(pts3D)[ind])
+        c2 = np.delete(c2, ind, 0)
+    
+    C = np.hstack(C).T # Each row is a 3D point
+    
+    
+    # Looking for point in origin, points in x and y directions.
     a = 0
-    for pt1, pt2, pt3 in itertools.permutations(c,3):
-        # We assume pt1 is the origin and pt2 and pt3 the x and y axis (in any 
-        # order) so vec(pt1,pt2) and vec(pt1,pt3) are perpendicular and dot
-        # product must be zero or small, we looking for the set 
-        # with the smaller dot product
-        dot = np.dot(pt2-pt1,pt3-pt1)
-        if a == 0:
-            dot_min = dot
-            org = pt1
-            p1 = pt2
-            p2 = pt3
-            
-            a = 1
+    for X1, X2, X3 in itertools.permutations(C,3):
+        # We assume X1 is the origin and X2 and X3 points in x and y directions
+        # (in any order)
+        if np.linalg.norm(X2-X1) > np.linalg.norm(X3-X1):
             continue
+        
+        # vec(X1,X2) and vec(X1,X3) are perpendicular and dot product must be
+        # zero or small, we looking for the set with the smaller dot product
+        dot = np.dot(X2-X1, X3-X1)
+        
+        if a == 0:
+            min_dot = dot
+            Xo = X1
+            Xx = X2
+            Xy = X3
+            a = 1
             
-        if dot_min > dot:
-            dot_min = dot
-            org = pt1
-            p1 = pt2
-            p2 = pt3
+            continue
+        
+        if min_dot > dot:
+            min_dot = dot
+            Xo = X1
+            Xx = X2
+            Xy = X3
     
-    # Now we are sure that org is the right origin coordinate, let's 
-    # figure out which is the correct x and y points using a criteria of 
-    # distance (x is closer to org than y)
-    
-    # Line between org and p1 and distance to p2
-    l1 = np.cross(np.append(org,1),np.append(p1,1))
-    d1 = dst(l1,p2)[0]
-    
-    # Line between org and p2 and distance to p1
-    l2 = np.cross(np.append(org,1),np.append(p2,1))
-    d2 = dst(l2,p1)[0]
-    
-    # Define x and y
-    if d1 < d2:
-        x = p2
-        y = p1
-    else:
-        x = p1
-        y = p2
-    
-    # If org is below y, check that x is to the right of org
-    if (y[1] < org[1]) & (org[0] > x[0]):
-        temp = org
-        org = x
-        x = temp
-    # If org is obove y, check that x is to the left of org
-    elif (y[1] > org[1]) & (org[0] < x[0]):
-        temp = org
-        org = x
-        x = temp
-    
-    # Write the correct labels on the image
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(im,'0',tuple(np.int32(org)), font, 1,(0,0,255),3)
-    cv2.putText(im,'x',tuple(np.int32(x)), font, 1,(0,0,255),3)
-    cv2.putText(im,'y',tuple(np.int32(y)), font, 1,(0,0,255),3)
-    
-    return im, org, x, y
+    return Xo, Xx, Xy
 
 
 def drawAxes(img, origin, imgpts):
@@ -413,7 +267,7 @@ def drawCub(img, imgpts):
     return img
 
 
-def getPose(P1, P2, p1, p2):
+def getPose(P1, P2, Xo, Xx, Xy):
     '''
     Function to compute pose of target
     
@@ -427,19 +281,17 @@ def getPose(P1, P2, p1, p2):
         R: rotation matrix
         t: translation vector
     '''
-    X = cv2.triangulatePoints(P1,P2,p1,p2)
-    X = X[:3]/X[-1] # Convert coordinates from homogeneous to Euclidean
     
-    xaxis = X[:,1]-X[:,0] # Vector pointing to x direction
+    xaxis = Xx-Xo # Vector pointing to x direction
     xaxis = xaxis/np.linalg.norm(xaxis) # Conversion to unitary
     
-    yaxis = X[:,2]-X[:,0] # Vector pointing to y direction
+    yaxis = Xy-Xo # Vector pointing to y direction
     yaxis = yaxis/np.linalg.norm(yaxis) # Conversion to unitary
     
     zaxis = np.cross(xaxis, yaxis) # Unitary vector pointing to z direction
     
     # Build rotation matrix and translation vector
     R = np.c_[xaxis,yaxis,zaxis]
-    t = X[:,0]
+    t = Xo
     
     return R, t
