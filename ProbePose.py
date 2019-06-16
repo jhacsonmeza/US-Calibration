@@ -8,7 +8,7 @@ import scipy.io as sio
 
 
 # Root path
-base = 'Calibration test 21-05-19 part1/'
+base = 'Calibration test 19-06-08/part1/'
 
 
 # Set window name and size
@@ -49,26 +49,28 @@ for im1n, im2n in zip(I1,I2):
                 im1n.split('\\')[-1], im2n.split('\\')[-1]))
         continue
     
-
-    # Target labeling
-    im1, org1, i1, j1 = target.label(im1,c1)
-    im2, org2, i2, j2 = target.label(im2,c2)
     
-    # Matrix of 2D target points
-    p1 = np.array([org1,i1,j1]).reshape(-1,1,2)
-    p2 = np.array([org2,i2,j2]).reshape(-1,1,2)
+    # Undistort 2D center coordinates in each image
+    c1 = cv2.undistortPoints(c1.reshape(-1,1,2), K1, distCoeffs1, 
+                             None, None, K1).reshape(-1,2)
     
-    # Undistort estimated points
-    p1 = cv2.undistortPoints(p1, K1, distCoeffs1, None, None, K1)
-    p2 = cv2.undistortPoints(p2, K2, distCoeffs2, None, None, K2)
-    p1 = p1.reshape(-1,2).T
-    p2 = p2.reshape(-1,2).T
+    c2 = cv2.undistortPoints(c2.reshape(-1,1,2), K2, distCoeffs2, 
+                             None, None, K2).reshape(-1,2)
+    
+    
+    # Get 3D coordinates of the center of each concentric circle
+    O, X, Y = target.centers3D(P1, P2, c1, c2)
+    
+    # 2D coordinate of origin in image 1        
+    org1 = P1 @ np.r_[O, 1]
+    org1 = org1[:2]/org1[-1]
+    
     
     # Target pose estimation
-    Rmat, tvec = target.getPose(P1, P2, p1, p2)
+    Rmat, tvec = target.getPose(P1, P2, O, X, Y)
     
-    # Save pose and cross-wire coordinates
-    T_P_W.append(np.r_[np.c_[Rmat, tvec], np.array([[0,0,0,1]])])
+    # Save pose
+    T_P_W.append(np.r_[np.c_[Rmat, tvec], [[0,0,0,1]]])
     
     # Draw axes in the first image
     rvec, _ = cv2.Rodrigues(Rmat)
