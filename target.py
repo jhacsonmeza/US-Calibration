@@ -148,19 +148,24 @@ def detect(im, global_th=True, th_im=False):
 
 def centers3D(P1, P2, c1, c2):
     '''
-    Function to label the different cocenctric circles as 0, x and y, where 0
-    represent the origin of the coordinate system, x the direction in the x
-    axis and y the direction to the y axis.
+    Function to compute the 3D coordinates of centers of each concentric circle
+    through triangulation. c1 and c2 have the unordered (unmatched) image 
+    coordinates of centers, hence based on reprojection error we look for 
+    correct correspondences, i.e., the pair of points with minimum reprojection
+    error are considered correspondences.
     
     input:
-        im: image with three concentric circles to label
-        c: 3 x 2 matrix with coordinates of concentric circle centers
+        P1: projection matrix of camera 1
+        P2: projection matrix of camera 2
+        c1: 3 x 2 matrix with image coordinates of concentric circle centers in 
+            camera 1
+        c2: 3 x 2 matrix with image coordinates of concentric circle centers in 
+            camera 2
         
     output:
-        * image with 0, x and y text drawn in each respective target
-        * origin coordinate
-        * x label coordinate
-        * y label coordinate
+        * Xo 3D coordinates of point in the target that represent the origin
+        * Xx 3D coordinates of point in the target in direction of x-axis
+        * Xy 3D coordinates of point in the target in direction of y-axis
     '''
     
     C = []
@@ -192,7 +197,7 @@ def centers3D(P1, P2, c1, c2):
     a = 0
     for X1, X2, X3 in itertools.permutations(C,3):
         # We assume X1 is the origin and X2 and X3 points in x and y directions
-        # (in any order)
+        # (in any order). Then, X2 is closer to X1.
         if np.linalg.norm(X2-X1) > np.linalg.norm(X3-X1):
             continue
         
@@ -272,10 +277,11 @@ def getPose(P1, P2, Xo, Xx, Xy):
     Function to compute pose of target
     
     input:
-        P1: Pose camera 1
-        P2: Pose camera 2
-        p1: 2 x n array with center coordinates of targets in image 1
-        p2: 2 x n array with center coordinates of targets in image 2
+        P1: Projection matrix of camera 1
+        P2: Projection matrix of camera 2
+        Xo: 3D coordinates of point in the target that represent the origin
+        Xx: 3D coordinates of point in the target in direction of x-axis
+        Xy: 3D coordinates of point in the target in direction of y-axis
         
     output:
         R: rotation matrix
