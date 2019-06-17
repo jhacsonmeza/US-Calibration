@@ -131,7 +131,7 @@ def detect(im, global_th=True, th_im=False):
     # Check if detection succeeds or fail.
     # If at least one element in v is larger than 0.35, the three circles were
     # not detected. This threshold value is empirical.
-    ret = False if sum(v[ind] > 0.35) else True
+    ret = False if sum(v[ind] > sum(v)*0.3) else True
     
         
     # Draw bounding boxes in the detections
