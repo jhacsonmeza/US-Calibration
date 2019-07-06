@@ -146,7 +146,24 @@ def detect(im, global_th=True, th_im=False):
     return ret, im, c
 
 
-def centers3D(P1, P2, c1, c2):
+def matchCenters(c1, c2, F):
+    
+    # Calculate epipolar lines in the second image
+    l = F @ np.c_[c1, [1,1,1]].T # c1 in form [x, y, 1]^T
+#    l = cv2.computeCorrespondEpilines(c1.reshape(-1,1,2), 1,F)
+#    d = np.c_[c2, [1,1,1]] @ l.reshape(3,3).T
+    
+    # Dot product is used to estimate the distace between a line and a point.
+    # Here dot product between all points of image 2 with each line is computed
+    d = np.c_[c2, [1,1,1]] @ l # c2 in form [x, y, 1]
+    
+    # First column of c1 with index matches[0]
+    matchIdx = np.argmin(abs(d), 0) # Minima in the rows direction
+    
+    return c2[matchIdx]
+
+
+def labeledCenters3D(P1, P2, c1, c2):
     '''
     Function to compute the 3D coordinates of centers of each concentric circle
     through triangulation. c1 and c2 have the unordered (unmatched) image 
@@ -168,34 +185,14 @@ def centers3D(P1, P2, c1, c2):
         * Xy 3D coordinates of point in the target in direction of y-axis
     '''
     
-    C = []
-    for p in c1:
-        d = np.array([])
-        pts3D = []
-        for p1, p2 in itertools.product([p],c2):
-            # Triangulate
-            X = cv2.triangulatePoints(P1,P2,p1.reshape(2,-1),p2.reshape(2,-1))
-            
-            # Reproject Points
-            x = P1 @ X
-            x = x[:2]/x[-1]
-            
-            # Save point and convert from homogeneous to Euclidean
-            pts3D.append(X[:3]/X[-1])
-            
-            # Reprojection error in pixels
-            d = np.r_[d, np.linalg.norm(x.flatten()-p1)]
-        
-        ind = np.argsort(d)[0]
-        C.append(np.array(pts3D)[ind])
-        c2 = np.delete(c2, ind, 0)
-    
-    C = np.hstack(C).T # Each row is a 3D point
+    # Calculate 3D coordinates of the centers
+    X = cv2.triangulatePoints(P1, P2, c1.T, c2.T)
+    X = X[:3]/X[-1] # Convert coordinates from homogeneous to Euclidean
     
     
-    # Looking for point in origin, points in x and y directions.
+    # Label: find 3D point in origin and 3D points in x and y directions
     a = 0
-    for X1, X2, X3 in itertools.permutations(C,3):
+    for X1, X2, X3 in itertools.permutations(X.T,3):
         # We assume X1 is the origin and X2 and X3 points in x and y directions
         # (in any order). Then, X2 is closer to X1.
         if np.linalg.norm(X2-X1) > np.linalg.norm(X3-X1):
