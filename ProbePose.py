@@ -25,6 +25,7 @@ K1 = Params['K1']
 K2 = Params['K2']
 R = Params['R']
 t = Params['t']
+F = Params['F']
 distCoeffs1 = Params['distCoeffs1'][0]
 distCoeffs2 = Params['distCoeffs2'][0]
 
@@ -58,7 +59,10 @@ for im1n, im2n in zip(I1,I2):
                              None, None, K2).reshape(-1,2)
     
     
-    # Get 3D coordinates of the center of each concentric circle
+    # Arrange centers of the second view
+    c2 = target.matchCenters(c1, c2, F)
+    
+    # Get 3D coordinates labeled of the center of each concentric circle
     O, X, Y = target.centers3D(P1, P2, c1, c2)
     
     # 2D coordinate of origin in image 1        
