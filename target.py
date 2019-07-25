@@ -272,13 +272,11 @@ def drawCub(img, imgpts):
     return img
 
 
-def getPose(P1, P2, Xo, Xx, Xy):
+def getPose(Xo, Xx, Xy):
     '''
     Function to compute pose of target
     
     input:
-        P1: Projection matrix of camera 1
-        P2: Projection matrix of camera 2
         Xo: 3D coordinates of point in the target that represent the origin
         Xx: 3D coordinates of point in the target in direction of x-axis
         Xy: 3D coordinates of point in the target in direction of y-axis
