@@ -46,7 +46,7 @@ for im1n, im2n in zip(I1,I2):
     ret2, im2, c2 = target.detect(im2)
     
     if not (ret1 and ret2):
-        print('\nCircles in image {} and {} couldn\'t be detected'.format(
+        print('\nCircles in image {} or {} couldn\'t be detected'.format(
                 im1n.split('\\')[-1], im2n.split('\\')[-1]))
         continue
     
@@ -58,23 +58,32 @@ for im1n, im2n in zip(I1,I2):
     c2 = cv2.undistortPoints(c2.reshape(-1,1,2), K2, distCoeffs2, 
                              None, None, K2).reshape(-1,2)
     
+    # Rearrange c2 in order to match the points with c1
+    c2 = target.match(c1, c2, F)
     
-    # Arrange centers of the second view
-    c2 = target.matchCenters(c1, c2, F)
     
-    # Get 3D coordinates labeled of the center of each concentric circle
-    O, X, Y = target.centers3D(P1, P2, c1, c2)
     
-    # 2D coordinate of origin in image 1        
-    org1 = P1 @ np.r_[O, 1]
-    org1 = org1[:2]/org1[-1]
+    # Estimate 3D coordinate of the concentric circles through triangulation
+    X = cv2.triangulatePoints(P1, P2, c1.T, c2.T)
+    X = X[:3]/X[-1] # Convert coordinates from homogeneous to Euclidean
     
+    
+    # Label the 3D coordinates of the center of each concentric circle as:
+    # Xo (origin of target frame), Xx (point in x-axis direction), and
+    # Xy (point in y-axis direction).
+    Xo, Xx, Xy = target.label(X)
     
     # Target pose estimation
-    Rmat, tvec = target.getPose(P1, P2, O, X, Y)
+    Rmat, tvec = target.getPose(Xo, Xx, Xy)
     
     # Save pose
     T_P_W.append(np.r_[np.c_[Rmat, tvec], [[0,0,0,1]]])
+    
+    
+    ############################ Visualize results ############################
+    # 2D coordinate of origin in image 1
+    org1 = P1 @ np.r_[Xo, 1]
+    org1 = org1[:2]/org1[-1]
     
     # Draw axes in the first image
     rvec, _ = cv2.Rodrigues(Rmat)
