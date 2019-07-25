@@ -5,7 +5,7 @@ import scipy.io as sio
 
 
 
-base = 'Calibration test 19-05-31/'
+base = 'Calibration test 19-06-08/part2/'
 
 
 # load known variables
@@ -25,7 +25,7 @@ f, J = calib.model()
 eq, Jeq = calib.calibEquations(f, J)
 
 # Calibrate with iterative Levenberg-Marquardt algorithm
-x = calib.iterativeCalibraion(eq, Jeq)
+x = calib.iterativeCalibraion(eq, Jeq)[0]
 
 # Get results
 sx, sy = x[9], x[10]
@@ -61,7 +61,7 @@ calib.setData(pts2, T_P_W2)
 eq, Jeq = calib.calibEquations(f, J)
 
 # Calibrate with iterative Levenberg-Marquardt algorithm
-x = calib.iterativeCalibraion(eq, Jeq)
+x = calib.iterativeCalibraion(eq, Jeq)[0]
 
 # Get results
 sx, sy = x[9], x[10]
