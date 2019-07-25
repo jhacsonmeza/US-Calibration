@@ -178,21 +178,13 @@ def match(c1, c2, F):
     return c2[idx]
 
 
-def labeledCenters3D(P1, P2, c1, c2):
+def label(X):
     '''
-    Function to compute the 3D coordinates of centers of each concentric circle
-    through triangulation. c1 and c2 have the unordered (unmatched) image 
-    coordinates of centers, hence based on reprojection error we look for 
-    correct correspondences, i.e., the pair of points with minimum reprojection
-    error are considered correspondences.
+    Function to label the 3D coordinates of the centers of each concentric 
+    circle
     
     input:
-        P1: projection matrix of camera 1
-        P2: projection matrix of camera 2
-        c1: 3 x 2 matrix with image coordinates of concentric circle centers in 
-            camera 1
-        c2: 3 x 2 matrix with image coordinates of concentric circle centers in 
-            camera 2
+        X: 3 (dims) x 3 (points num.) matrix with 3D coordinates of centers
         
     output:
         * Xo 3D coordinates of point in the target that represent the origin
@@ -200,12 +192,8 @@ def labeledCenters3D(P1, P2, c1, c2):
         * Xy 3D coordinates of point in the target in direction of y-axis
     '''
     
-    # Calculate 3D coordinates of the centers
-    X = cv2.triangulatePoints(P1, P2, c1.T, c2.T)
-    X = X[:3]/X[-1] # Convert coordinates from homogeneous to Euclidean
-    
-    
-    # Label: find 3D point in origin and 3D points in x and y directions
+    # Label: find 3D point in origin and 3D points in x and y directions using
+    # distance and perpendicularity criteria
     a = 0
     for X1, X2, X3 in itertools.permutations(X.T,3):
         # We assume X1 is the origin and X2 and X3 points in x and y directions
