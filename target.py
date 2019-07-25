@@ -249,9 +249,9 @@ def drawAxes(img, origin, imgpts):
     '''
     
     corner = tuple(np.int32(origin))
-    img = cv2.line(img,corner,tuple(np.int32(imgpts[0].ravel())), (255,0,0),5)
+    img = cv2.line(img,corner,tuple(np.int32(imgpts[0].ravel())), (0,0,255),5)
     img = cv2.line(img,corner,tuple(np.int32(imgpts[1].ravel())), (0,255,0),5)
-    img = cv2.line(img,corner,tuple(np.int32(imgpts[2].ravel())), (0,0,255),5)
+    img = cv2.line(img,corner,tuple(np.int32(imgpts[2].ravel())), (255,0,0),5)
     
     return img
 
