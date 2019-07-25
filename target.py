@@ -146,21 +146,36 @@ def detect(im, global_th=True, th_im=False):
     return ret, im, c
 
 
-def matchCenters(c1, c2, F):
+def match(c1, c2, F):
+    '''
+    Find the corresponding point in image 2 of the centers in the firsrt view
+    using the epipolar line and by looking for the center of the second view
+    closest to each epipolar line.
+    
+    input:
+        c1: 3 x 2 matrix with image coordinates of concentric circle centers in 
+            camera 1
+        c2: 3 x 2 matrix with image coordinates of concentric circle centers in 
+            camera 2
+        F: 3 x 3 Fundamental matrix
+        
+    output:
+        * c2 correspondences of points c1 (c2 rearranged).
+    '''
     
     # Calculate epipolar lines in the second image
-    l = F @ np.c_[c1, [1,1,1]].T # c1 in form [x, y, 1]^T
-#    l = cv2.computeCorrespondEpilines(c1.reshape(-1,1,2), 1,F)
-#    d = np.c_[c2, [1,1,1]] @ l.reshape(3,3).T
+    l2 = F @ np.c_[c1, [1,1,1]].T # c1 in form [x, y, 1]^T
     
-    # Dot product is used to estimate the distace between a line and a point.
-    # Here dot product between all points of image 2 with each line is computed
-    d = np.c_[c2, [1,1,1]] @ l # c2 in form [x, y, 1]
+    # Dot product is used as score to estimate the point closest to a line, 
+    # because of if a point lies in a line, scalar product must be zero.
+    # Calculate dot product between all the points of the image 2 with each 
+    # epipolar line.
+    d = np.c_[c2, [1,1,1]] @ l2 # c2 in form [x, y, 1]
     
-    # First column of c1 with index matches[0]
-    matchIdx = np.argmin(abs(d), 0) # Minima in the rows direction
+    # Idx is in such a way that i-th row of c1 match with the i-th row of c2 
+    idx = np.argmin(abs(d), 0) # Minimum value (score) in the rows direction
     
-    return c2[matchIdx]
+    return c2[idx]
 
 
 def labeledCenters3D(P1, P2, c1, c2):
