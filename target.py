@@ -53,7 +53,7 @@ def detect(im, global_th=True, th_im=False):
     imo = cv2.morphologyEx(bw,cv2.MORPH_OPEN,kernel)
     
     # Compute contours
-    _,contours,_ = cv2.findContours(imo,cv2.RETR_TREE,
+    contours,_ = cv2.findContours(imo,cv2.RETR_TREE,
                                     cv2.CHAIN_APPROX_SIMPLE)
     
     # Loop over the contours, approximate the contour with a reduced set of 
