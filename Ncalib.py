@@ -38,6 +38,7 @@ rbr = []
 rbl = []
 
 rms = np.array([])
+xhat = []
 for i, base in enumerate(paths):
     print('calibration {}/{}'.format(i+1,len(paths)))
     
@@ -58,6 +59,9 @@ for i, base in enumerate(paths):
     # Get optimal parameters needed for quality evaluation    
     sx, sy = x[9], x[10]
     T_I_P = calib.T(x[3], x[4], x[5], x[6], x[7], x[8])
+    
+    # Save optimal paramters
+    xhat.append([x[9], x[10], x[3], x[4], x[5], x[6], x[7], x[8]])
     
     
     # Compute centre of US image in the probe frame
@@ -115,3 +119,15 @@ for p1, p2 in itertools.combinations(rbr,2):
     pre.append(np.linalg.norm(p1-p2))
 
 print('\nPrecision at bottom right corner = {}'.format(sum(pre)/len(pre)))
+
+
+# Estimate final parameters
+xhat = np.array(xhat)
+xhat = xhat.mean(0) # Mean of all calibration parameters of each calibration
+
+sxm, sym = xhat[0], xhat[1]
+T_I_Pm = calib.T(xhat[2], xhat[3], xhat[4], xhat[5], xhat[6], xhat[7])
+
+# Save calibration results
+sio.savemat('Calibration test 19-06-08/'+'USparams.mat', 
+            {'sx':sxm,'sy':sym,'T_I_P':T_I_Pm})
