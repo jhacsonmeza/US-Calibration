@@ -8,7 +8,8 @@ import scipy.io as sio
 
 
 # Root path
-base = 'Calibration test 19-06-08/part1/'
+#'Calibration test 19-06-08/part1/'
+base = os.path.relpath('Calibration datasets/Calibration test 19-05-08/data1')
 
 
 # Set window name and size
@@ -16,11 +17,11 @@ cv2.namedWindow('Detection', cv2.WINDOW_NORMAL)
 cv2.resizeWindow('Detection', 640*2, 512)
 
 # Read left and right images of the target
-I1 = sorted(glob.glob(base+'acquisitionUS/L/*.bmp'), key=os.path.getmtime)
-I2 = sorted(glob.glob(base+'acquisitionUS/R/*.bmp'), key=os.path.getmtime)
+I1 = sorted(glob.glob(os.path.join(base,'L','*bmp')), key=os.path.getctime)
+I2 = sorted(glob.glob(os.path.join(base,'R','*bmp')), key=os.path.getctime)
 
 # Load stereo calibration parameters
-Params = sio.loadmat(base+'Params.mat')
+Params = sio.loadmat(os.path.join(os.path.dirname(base),'Params.mat'))
 K1 = Params['K1']
 K2 = Params['K2']
 R = Params['R']
@@ -98,5 +99,5 @@ for im1n, im2n in zip(I1,I2):
 cv2.destroyAllWindows()
 
 # Save variables
-with open(base+'probe_pose.pkl', 'wb') as file:
+with open(os.path.join(base,'probe_pose.pkl'), 'wb') as file:
     pickle.dump(T_P_W, file)

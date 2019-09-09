@@ -1,5 +1,5 @@
 clear, clc
-root = 'Calibration test 19-06-08/part1/';
+root = 'Calibration datasets/Calibration test 19-05-31/';
 
 load([root,'stereoParams.mat'])
 

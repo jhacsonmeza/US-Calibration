@@ -1,3 +1,4 @@
+import os
 import pickle
 import numpy as np
 import calibration
@@ -5,16 +6,8 @@ import scipy.io as sio
 import itertools
 
 
-paths = ['Calibration test 19-06-08/part1/',
-         'Calibration test 19-06-08/part2/',
-         'Calibration test 19-06-08/part3/',
-         'Calibration test 19-06-08/part4/',
-#         'Calibration test 19-06-08/mala - part2/',
-         'Calibration test 19-06-08/mala - part3/',
-#         'Calibration test 19-06-08/mala - part4/',
-         'Calibration test 19-06-08/mala - part4 2/',
-         'Calibration test 19-06-08/mala - part4 3/',
-         'Calibration test 19-06-08/Calibration test 19-06-07/']
+base = os.path.relpath('Calibration datasets/Calibration test 19-06-08/')
+paths = [os.path.join(base, x) for x in os.listdir(base) if 'data' in x]
 
 
 # Create calibration object
@@ -39,14 +32,14 @@ rbl = []
 
 rms = np.array([])
 xhat = []
-for i, base in enumerate(paths):
+for i, path in enumerate(paths):
     print('calibration {}/{}'.format(i+1,len(paths)))
     
     # load known variables
-    with open(base+'probe_pose.pkl','rb') as file:
+    with open(os.path.join(path,'probe_pose.pkl'),'rb') as file:
         T_P_W = pickle.load(file)
 
-    pts = sio.loadmat(base+'crossP.mat')['crossP']
+    pts = sio.loadmat(os.path.join(path,'crossP.mat'))['crossP']
 
 
     # Set input data and calibrate
@@ -129,5 +122,5 @@ sxm, sym = xhat[0], xhat[1]
 T_I_Pm = calib.T(xhat[2], xhat[3], xhat[4], xhat[5], xhat[6], xhat[7])
 
 # Save calibration results
-sio.savemat('Calibration test 19-06-08/'+'USparams.mat', 
+sio.savemat(os.path.join(base,'USparams.mat'), 
             {'sx':sxm,'sy':sym,'T_I_P':T_I_Pm})
