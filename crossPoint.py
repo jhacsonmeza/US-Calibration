@@ -13,10 +13,10 @@ import scipy.io as sio
 from matplotlib import pyplot as plt
 
 
-base = 'Calibration test 21-05-19 part1/'
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/data2')
 
 
-I = sorted(glob.glob(base+'acquisitionUS/UScrop/*.bmp'), key=os.path.getmtime)
+I = sorted(glob.glob(os.path.join(base,'UScrop','*.bmp')),key=os.path.getctime)
 
 pts =[]
 T_P_W = []
@@ -33,4 +33,4 @@ for imn in I:
 
 pts = np.array(pts)
 
-sio.savemat(base+'crossP.mat', {'crossP':pts})
+sio.savemat(os.path.join(base,'crossP.mat'), {'crossP':pts})
