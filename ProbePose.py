@@ -4,12 +4,10 @@ import glob
 import target
 import pickle
 import numpy as np
-import scipy.io as sio
 
 
 # Root path
-#'Calibration test 19-06-08/part1/'
-base = os.path.relpath('Calibration datasets/Calibration test 19-05-08/data1')
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/data1')
 
 
 # Set window name and size
@@ -21,14 +19,14 @@ I1 = sorted(glob.glob(os.path.join(base,'L','*bmp')), key=os.path.getctime)
 I2 = sorted(glob.glob(os.path.join(base,'R','*bmp')), key=os.path.getctime)
 
 # Load stereo calibration parameters
-Params = sio.loadmat(os.path.join(os.path.dirname(base),'Params.mat'))
+Params = np.load(os.path.join(os.path.dirname(base),'cam1_cam2.npz'))
 K1 = Params['K1']
 K2 = Params['K2']
 R = Params['R']
 t = Params['t']
 F = Params['F']
-distCoeffs1 = Params['distCoeffs1'][0]
-distCoeffs2 = Params['distCoeffs2'][0]
+dist1 = Params['dist1'][0]
+dist2 = Params['dist2'][0]
 
 # Create projection matrices of camera 1 and camera 2
 P1 = K1 @ np.c_[np.eye(3), np.zeros(3)]
@@ -53,10 +51,10 @@ for im1n, im2n in zip(I1,I2):
     
     
     # Undistort 2D center coordinates in each image
-    c1 = cv2.undistortPoints(c1.reshape(-1,1,2), K1, distCoeffs1, 
+    c1 = cv2.undistortPoints(c1.reshape(-1,1,2), K1, dist1, 
                              None, None, K1).reshape(-1,2)
     
-    c2 = cv2.undistortPoints(c2.reshape(-1,1,2), K2, distCoeffs2, 
+    c2 = cv2.undistortPoints(c2.reshape(-1,1,2), K2, dist2, 
                              None, None, K2).reshape(-1,2)
     
     # Rearrange c2 in order to match the points with c1
