@@ -4,6 +4,7 @@ import glob
 import target
 import pickle
 import numpy as np
+import scipy.io as sio
 
 
 # Root path
@@ -19,7 +20,8 @@ I1 = sorted(glob.glob(os.path.join(base,'L','*bmp')), key=os.path.getctime)
 I2 = sorted(glob.glob(os.path.join(base,'R','*bmp')), key=os.path.getctime)
 
 # Load stereo calibration parameters
-Params = np.load(os.path.join(os.path.dirname(base),'cam1_cam2.npz'))
+#Params = np.load(os.path.join(os.path.dirname(base),'cam1_cam2.npz'))
+Params = sio.loadmat(os.path.join(os.path.dirname(base),'Params.mat'))
 K1 = Params['K1']
 K2 = Params['K2']
 R = Params['R']
@@ -36,7 +38,8 @@ axes = 40*np.array([[1.,0,0], [0,1.,0], [0,0,1.]]) # axes for drawAxes
 
 
 T_P_W = []
-for im1n, im2n in zip(I1,I2):
+errs = []
+for im1n, im2n in zip(I1[:22],I2[:22]):
     im1 = cv2.imread(im1n)
     im2 = cv2.imread(im2n)
     
@@ -68,6 +71,9 @@ for im1n, im2n in zip(I1,I2):
     # Xo (origin of target frame), Xx (point in x-axis direction), and
     # Xy (point in y-axis direction).
     Xo, Xx, Xy = target.label(X)
+    errs.append([abs(np.linalg.norm(Xo-Xx)-25)/25,
+                 abs(np.linalg.norm(Xo-Xy)-40)/40])
+#    print(np.linalg.norm(Xo-Xx),np.linalg.norm(Xo-Xy))
     
     # Target pose estimation
     Rmat, tvec = target.getPose(Xo, Xx, Xy)
@@ -86,7 +92,27 @@ for im1n, im2n in zip(I1,I2):
     axs, _ = cv2.projectPoints(axes, rvec, tvec, K1, None)
     img = target.drawAxes(im1.copy(), org1, axs)
     
-    cv2.imshow('Detection',np.hstack([img,im2]))
+    x = P1 @ np.r_[Xo, 1]
+    x = x[:2]/x[-1]
+    im1 = cv2.circle(im1,(int(x[0]),int(x[1])),8,(0,0,255),-1)
+    x = P1 @ np.r_[Xx, 1]
+    x = x[:2]/x[-1]
+    im1 = cv2.circle(im1,(int(x[0]),int(x[1])),8,(0,255,0),-1)
+    x = P1 @ np.r_[Xy, 1]
+    x = x[:2]/x[-1]
+    im1 = cv2.circle(im1,(int(x[0]),int(x[1])),8,(255,0,0),-1)
+    
+    x = P2 @ np.r_[Xo, 1]
+    x = x[:2]/x[-1]
+    im2 = cv2.circle(im2,(int(x[0]),int(x[1])),8,(0,0,255),-1)
+    x = P2 @ np.r_[Xx, 1]
+    x = x[:2]/x[-1]
+    im2 = cv2.circle(im2,(int(x[0]),int(x[1])),8,(0,255,0),-1)
+    x = P2 @ np.r_[Xy, 1]
+    x = x[:2]/x[-1]
+    im2 = cv2.circle(im2,(int(x[0]),int(x[1])),8,(255,0,0),-1)
+    
+    cv2.imshow('Detection',np.hstack([im1,im2]))
     if cv2.waitKey(500) & 0xFF == 27:
         break
         
