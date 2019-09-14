@@ -1,5 +1,5 @@
 clear, clc
-root = 'Calibration datasets/Calibration test 19-05-31/';
+root = 'Calibration datasets/Calibration test 19-06-08/';
 
 load([root,'stereoParams.mat'])
 
@@ -9,12 +9,12 @@ R = stereoParams.RotationOfCamera2';
 t = stereoParams.TranslationOfCamera2';
 F = stereoParams.FundamentalMatrix;
 
-distCoeffs1 = [stereoParams.CameraParameters1.RadialDistortion(1:2) ...
+dist1 = [stereoParams.CameraParameters1.RadialDistortion(1:2) ...
     stereoParams.CameraParameters1.TangentialDistortion ...
     stereoParams.CameraParameters1.RadialDistortion(3)];
 
-distCoeffs2 = [stereoParams.CameraParameters2.RadialDistortion(1:2) ...
+dist2 = [stereoParams.CameraParameters2.RadialDistortion(1:2) ...
     stereoParams.CameraParameters2.TangentialDistortion ...
     stereoParams.CameraParameters2.RadialDistortion(3)];
 
-save([root,'Params.mat'],'K1','K2','R','t','F','distCoeffs1','distCoeffs2')
+save([root,'Params.mat'],'K1','K2','R','t','F','dist1','dist2')
