@@ -73,7 +73,7 @@ def detect(im, global_th=True, th_im=False):
         
         # Check if approximated contour is stored with its area, perimeter
         # and centroid
-        if (len(approx) > 5) & (area > 30) & (area < 4000):
+        if (len(approx) > 5) & (area > 100) & (area < 40000):
             conts.append(cnt)
             areas.append(area)
             perimeters.append(perimeter)
