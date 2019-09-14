@@ -51,11 +51,8 @@ for im1n, im2n in zip(I1,I2):
     
     
     # Undistort 2D center coordinates in each image
-    c1 = cv2.undistortPoints(c1.reshape(-1,1,2), K1, dist1, 
-                             None, None, K1).reshape(-1,2)
-    
-    c2 = cv2.undistortPoints(c2.reshape(-1,1,2), K2, dist2, 
-                             None, None, K2).reshape(-1,2)
+    c1 = cv2.undistortPoints(c1, K1, dist1, None, None, K1)
+    c2 = cv2.undistortPoints(c2, K2, dist2, None, None, K2)
     
     # Rearrange c2 in order to match the points with c1
     c2 = target.match(c1, c2, F)
@@ -63,7 +60,7 @@ for im1n, im2n in zip(I1,I2):
     
     
     # Estimate 3D coordinate of the concentric circles through triangulation
-    X = cv2.triangulatePoints(P1, P2, c1.T, c2.T)
+    X = cv2.triangulatePoints(P1, P2, c1, c2)
     X = X[:3]/X[-1] # Convert coordinates from homogeneous to Euclidean
     
     

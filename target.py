@@ -34,7 +34,7 @@ def detect(im, global_th=True, th_im=False):
         
     output:
         * image with drawn bounding boxes
-        * 3 x 2 matrix with image coordinates of each target
+        * 3 x 1 x 2 matrix with image coordinates of each target
         * True if detection succeeds and False if fail
     '''
     
@@ -143,7 +143,7 @@ def detect(im, global_th=True, th_im=False):
         cv2.rectangle(im,(x,y),(x+w,y+h),(0,255,0),3)
 
     
-    return ret, im, c
+    return ret, im, c.reshape(-1,1,2)
 
 
 def match(c1, c2, F):
@@ -153,24 +153,24 @@ def match(c1, c2, F):
     closest to each epipolar line.
     
     input:
-        c1: 3 x 2 matrix with image coordinates of concentric circle centers in 
-            camera 1
-        c2: 3 x 2 matrix with image coordinates of concentric circle centers in 
-            camera 2
+        c1: 3 x 1 x 2 matrix with image coordinates of concentric circle
+            centers in camera 1
+        c2: 3 x 1 x 2 matrix with image coordinates of concentric circle 
+            centers in camera 2
         F: 3 x 3 Fundamental matrix
         
     output:
         * c2 correspondences of points c1 (c2 rearranged).
     '''
     
-    # Calculate epipolar lines in the second image
-    l2 = F @ np.c_[c1, [1,1,1]].T # c1 in form [x, y, 1]^T
+    # Calculate normalized epipolar lines in the second image
+    l2 = cv2.computeCorrespondEpilines(c1, 1, F)
     
-    # Dot product is used as score to estimate the point closest to a line, 
-    # because of if a point lies in a line, scalar product must be zero.
-    # Calculate dot product between all the points of the image 2 with each 
-    # epipolar line.
-    d = np.c_[c2, [1,1,1]] @ l2 # c2 in form [x, y, 1]
+    # As line is normalized so that a^2+b^2=1, we can calculate the distance 
+    # between the line and a point using the dot product. If a point lies in a
+    # line, scalar product must be zero. Calculate dot product between all the 
+    # points of the image 2 with each epipolar line (x^T l).
+    d = cv2.convertPointsToHomogeneous(c2)[:,0,:] @ l2[:,0,:].T
     
     # Idx is in such a way that i-th row of c1 match with the i-th row of c2 
     idx = np.argmin(abs(d), 0) # Minimum value (score) in the rows direction
