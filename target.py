@@ -1,6 +1,23 @@
+import re
 import cv2
 import itertools
 import numpy as np
+
+def natsort(l):
+    '''
+    Lambda function for nautural sorting of strings. Useful for sorting the 
+    list of file name of images with the target. Taken from:
+    https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/
+    
+    input:
+        l: list of input images with the target
+    output:
+        Nutural sorted list of images
+    '''
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    
+    return sorted(l, key=alphanum_key)
 
 def dst(l,p):
     '''
