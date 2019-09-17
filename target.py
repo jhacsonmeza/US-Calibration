@@ -286,7 +286,7 @@ def label(X):
     return Xo, Xx, Xy
 
 
-def drawAxes(img, Xo, K1, dist1, R, tvec):
+def drawAxes(img, K1, dist1, R, tvec):
     '''
     Function to draw the axes of a coordinate system
     
@@ -298,21 +298,18 @@ def drawAxes(img, Xo, K1, dist1, R, tvec):
     output:
         image with axes drawn
     '''
-    axes = 40*np.array([[1.,0,0], [0,1.,0], [0,0,1.]]) # axes to draw
-    
-    # Reproject origin point of the target frame
-    org1, _ = cv2.projectPoints(np.array([Xo]), np.zeros((3,1)), 
-                                np.zeros((3,1)), K1, dist1)
+    axes = 40*np.array([[0,0,0], [1.,0,0], [0,1.,0], [0,0,1.]]) # axes to draw
     
     # Reproject target coordinate system axes
     rvec, _ = cv2.Rodrigues(R)
     axs, _ = cv2.projectPoints(axes, rvec, tvec, K1, dist1)
+    axs = np.int32(axs[:,0,:])
     
     # Draw axes
-    corner = tuple(np.int32(org1.ravel()))
-    img = cv2.line(img,corner,tuple(np.int32(axs[0].ravel())), (0,0,255),5)
-    img = cv2.line(img,corner,tuple(np.int32(axs[1].ravel())), (0,255,0),5)
-    img = cv2.line(img,corner,tuple(np.int32(axs[2].ravel())), (255,0,0),5)
+    origin = tuple(axs[0])
+    img = cv2.line(img,origin,tuple(axs[1]), (0,0,255),5)
+    img = cv2.line(img,origin,tuple(axs[2]), (0,255,0),5)
+    img = cv2.line(img,origin,tuple(axs[3]), (255,0,0),5)
     
     return img
 
