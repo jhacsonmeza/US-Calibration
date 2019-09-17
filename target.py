@@ -286,14 +286,16 @@ def label(X):
     return Xo, Xx, Xy
 
 
-def drawAxes(img, K1, dist1, R, tvec):
+def drawAxes(im1, K1, dist1, R, t):
     '''
-    Function to draw the axes of a coordinate system
+    Function to project and draw the axes of the target coordinate system in 
+    the image plane 1
     
     input:
-        img: image to draw cube
-        origin: origin coordinates of target frame
-        imgpts: image coordinates of the ends of axes
+        im1: image of camera 1
+        K1: intrinsic matrix of camera 1
+        dist1: distortion coefficients
+        R, t: position and orientation of target frame relative to camera 1
         
     output:
         image with axes drawn
@@ -302,26 +304,28 @@ def drawAxes(img, K1, dist1, R, tvec):
     
     # Reproject target coordinate system axes
     rvec, _ = cv2.Rodrigues(R)
-    axs, _ = cv2.projectPoints(axes, rvec, tvec, K1, dist1)
+    axs, _ = cv2.projectPoints(axes, rvec, t, K1, dist1)
     axs = np.int32(axs[:,0,:])
     
     # Draw axes
     origin = tuple(axs[0])
-    img = cv2.line(img,origin,tuple(axs[1]), (0,0,255),5)
-    img = cv2.line(img,origin,tuple(axs[2]), (0,255,0),5)
-    img = cv2.line(img,origin,tuple(axs[3]), (255,0,0),5)
+    im1 = cv2.line(im1, origin, tuple(axs[1]), (0,0,255), 5)
+    im1 = cv2.line(im1, origin, tuple(axs[2]), (0,255,0), 5)
+    im1 = cv2.line(im1, origin, tuple(axs[3]), (255,0,0), 5)
     
-    return img
+    return im1
 
 
-def drawCub(img, K1, dist1, R, tvec):
+def drawCub(im1, K1, dist1, R, t):
     '''
-    Function to draw a cube in an image
+    Function to project and draw a cube from the target coordinate system in 
+    the image plane 1
     
     input:
-        img: image to draw cube
-        imgpts: image coordinates of the vertices of the cube. First lower
-                vertices coordinates and then upper vertices.
+        im1: image of camera 1
+        K1: intrinsic matrix of camera 1
+        dist1: distortion coefficients
+        R, t: position and orientation of target frame relative to camera 1
         
     output:
         image with cube drawn
@@ -331,20 +335,20 @@ def drawCub(img, K1, dist1, R, tvec):
     
     # Reproject vertices from target coordinate system
     rvec, _ = cv2.Rodrigues(R)
-    vert, _ = cv2.projectPoints(vertices, rvec, tvec, K1, dist1)
+    vert, _ = cv2.projectPoints(vertices, rvec, t, K1, dist1)
     vert = np.int32(vert[:,0,:])
     
     # draw ground floor in green
-    img = cv2.drawContours(img, [vert[:4]],-1,(0,255,0),-3)
+    im1 = cv2.drawContours(im1, [vert[:4]], -1, (0,255,0), -3)
     
     # draw pillars in blue color
     for i,j in zip(range(4),range(4,8)):
-        img = cv2.line(img, tuple(vert[i]), tuple(vert[j]),(255),3)
+        im1 = cv2.line(im1, tuple(vert[i]), tuple(vert[j]), (255), 3)
     
     # draw top layer in red color
-    img = cv2.drawContours(img, [vert[4:]],-1,(0,0,255),3)
+    im1 = cv2.drawContours(im1, [vert[4:]], -1, (0,0,255), 3)
     
-    return img
+    return im1
 
 
 def drawCenters(im1, im2, K1, K2, R, t, dist1, dist2, Xo, Xx, Xy):
