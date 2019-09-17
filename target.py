@@ -314,7 +314,7 @@ def drawAxes(img, K1, dist1, R, tvec):
     return img
 
 
-def drawCub(img, imgpts):
+def drawCub(img, K1, dist1, R, tvec):
     '''
     Function to draw a cube in an image
     
@@ -326,18 +326,23 @@ def drawCub(img, imgpts):
     output:
         image with cube drawn
     '''
+    vertices = 40*np.array([[0,0,0],[0,1.,0],[1,1,0],[1,0,0],[0,0,1],
+                            [0,1,1],[1,1,1],[1,0,1]]) # vertices to draw
     
-    imgpts = np.int32(imgpts).reshape(-1,2)
+    # Reproject vertices from target coordinate system
+    rvec, _ = cv2.Rodrigues(R)
+    vert, _ = cv2.projectPoints(vertices, rvec, tvec, K1, dist1)
+    vert = np.int32(vert[:,0,:])
     
     # draw ground floor in green
-    img = cv2.drawContours(img, [imgpts[:4]],-1,(0,255,0),-3)
+    img = cv2.drawContours(img, [vert[:4]],-1,(0,255,0),-3)
     
     # draw pillars in blue color
     for i,j in zip(range(4),range(4,8)):
-        img = cv2.line(img, tuple(imgpts[i]), tuple(imgpts[j]),(255),3)
+        img = cv2.line(img, tuple(vert[i]), tuple(vert[j]),(255),3)
     
     # draw top layer in red color
-    img = cv2.drawContours(img, [imgpts[4:]],-1,(0,0,255),3)
+    img = cv2.drawContours(img, [vert[4:]],-1,(0,0,255),3)
     
     return img
 
