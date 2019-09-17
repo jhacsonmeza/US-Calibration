@@ -335,6 +335,27 @@ def drawCub(img, imgpts):
     return img
 
 
+def drawEpilines(img,lines):
+    '''
+    Function to draw the epipolar lines in the image.
+    
+    input:
+        img: image on which draw the epilines
+        lines: corresponding epilines
+    
+    output:
+        image with epilines
+    '''
+    r,c = img.shape
+    img = cv2.cvtColor(img,cv2.COLOR_GRAY2BGR)
+    for r in lines:
+        color = tuple(np.random.randint(0,255,3).tolist())
+        x0,y0 = map(int, [0, -r[2]/r[1] ])
+        x1,y1 = map(int, [c, -(r[2]+r[0]*c)/r[1] ])
+        img = cv2.line(img, (x0,y0), (x1,y1), color,3)
+    return img
+
+
 def getPose(Xo, Xx, Xy):
     '''
     Function to compute pose of target
