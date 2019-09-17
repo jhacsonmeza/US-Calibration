@@ -34,8 +34,6 @@ dist2 = Params['dist2'][0]
 P1 = K1 @ np.c_[np.eye(3), np.zeros(3)]
 P2 = K2 @ np.c_[R, t]
 
-axes = 40*np.array([[1.,0,0], [0,1.,0], [0,0,1.]]) # axes for drawAxes
-
 
 T_P_W = []
 errs = []
@@ -57,9 +55,9 @@ for im1n, im2n in zip(I1,I2):
     c1 = cv2.undistortPoints(c1, K1, dist1, None, None, K1)
     c2 = cv2.undistortPoints(c2, K2, dist2, None, None, K2)
     
+    
     # Estimate unlabel 3D coordinates of centers
     X = target.centers3D(P1, P2, c1, c2)
-    
     
     # Label the 3D coordinates of the center of each concentric circle as:
     # Xo (origin of target frame), Xx (point in x-axis direction), and
@@ -76,34 +74,9 @@ for im1n, im2n in zip(I1,I2):
     
     
     ############################ Visualize results ############################
-    # 2D coordinate of origin in image 1
-    org1 = P1 @ np.r_[Xo, 1]
-    org1 = org1[:2]/org1[-1]
-    
-    # Draw axes in the first image
-    rvec, _ = cv2.Rodrigues(Rmat)
-    axs, _ = cv2.projectPoints(axes, rvec, tvec, K1, None)
-    img = target.drawAxes(im1.copy(), org1, axs)
-    
-    x = P1 @ np.r_[Xo, 1]
-    x = x[:2]/x[-1]
-    im1 = cv2.circle(im1,(int(x[0]),int(x[1])),8,(0,0,255),-1)
-    x = P1 @ np.r_[Xx, 1]
-    x = x[:2]/x[-1]
-    im1 = cv2.circle(im1,(int(x[0]),int(x[1])),8,(0,255,0),-1)
-    x = P1 @ np.r_[Xy, 1]
-    x = x[:2]/x[-1]
-    im1 = cv2.circle(im1,(int(x[0]),int(x[1])),8,(255,0,0),-1)
-    
-    x = P2 @ np.r_[Xo, 1]
-    x = x[:2]/x[-1]
-    im2 = cv2.circle(im2,(int(x[0]),int(x[1])),8,(0,0,255),-1)
-    x = P2 @ np.r_[Xx, 1]
-    x = x[:2]/x[-1]
-    im2 = cv2.circle(im2,(int(x[0]),int(x[1])),8,(0,255,0),-1)
-    x = P2 @ np.r_[Xy, 1]
-    x = x[:2]/x[-1]
-    im2 = cv2.circle(im2,(int(x[0]),int(x[1])),8,(255,0,0),-1)
+#    target.drawAxes(im1, K1, dist1, Rmat, tvec)
+#    target.drawCub(im1, K1, dist1, Rmat, tvec)
+    target.drawCenters(im1, im2, K1, K2, R, t, dist1, dist2, Xo, Xx, Xy)
     
     cv2.imshow('Detection',np.hstack([im1,im2]))
     if cv2.waitKey(500) & 0xFF == 27:
