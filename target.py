@@ -335,6 +335,38 @@ def drawCub(img, imgpts):
     return img
 
 
+def drawCenters(im1, im2, K1, K2, R, t, dist1, dist2, Xo, Xx, Xy):
+    '''
+    Function to draw the reprojected 3D centers in both images.
+    Red point Xo, green point Xx, blue point Xy.
+    
+    input:
+        im1, im2: left and right images
+        K1, K2: intrinsic matrices of camera 1 and camera 2
+        R, t: intrinsic parameters between camera 1 and camera 2
+        dist1, dist2: distortion coefficients
+        Xo, Xx, Xy: 3D coordinates of the center of circles
+    
+    output:
+        images with drawn reprojected centers
+    '''
+    X = np.c_[Xo,Xx,Xy].T
+    rvec, _ = cv2.Rodrigues(R)
+    
+    c1, _ = cv2.projectPoints(X, np.zeros((3,1)), np.zeros((3,1)), K1, dist1)
+    c2, _ = cv2.projectPoints(X, rvec, t, K2, dist2)
+    
+    im1 = cv2.circle(im1,(int(c1[0,0,0]),int(c1[0,0,1])),8,(0,0,255),-1)
+    im1 = cv2.circle(im1,(int(c1[1,0,0]),int(c1[1,0,1])),8,(0,255,0),-1)
+    im1 = cv2.circle(im1,(int(c1[2,0,0]),int(c1[2,0,1])),8,(255,0,0),-1)
+    
+    im2 = cv2.circle(im2,(int(c2[0,0,0]),int(c2[0,0,1])),8,(0,0,255),-1)
+    im2 = cv2.circle(im2,(int(c2[1,0,0]),int(c2[1,0,1])),8,(0,255,0),-1)
+    im2 = cv2.circle(im2,(int(c2[2,0,0]),int(c2[2,0,1])),8,(255,0,0),-1)
+    
+    return im1, im2
+
+
 def drawEpilines(img,lines):
     '''
     Function to draw the epipolar lines in the image.
