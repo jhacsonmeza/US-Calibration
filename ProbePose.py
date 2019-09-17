@@ -16,8 +16,8 @@ cv2.namedWindow('Detection', cv2.WINDOW_NORMAL)
 cv2.resizeWindow('Detection', 640*2, 512)
 
 # Read left and right images of the target
-I1 = sorted(glob.glob(os.path.join(base,'L','*bmp')), key=os.path.getctime)
-I2 = sorted(glob.glob(os.path.join(base,'R','*bmp')), key=os.path.getctime)
+I1 = target.natsort(glob.glob(os.path.join(base,'L','*bmp')))
+I2 = target.natsort(glob.glob(os.path.join(base,'R','*bmp')))
 
 # Load stereo calibration parameters
 #Params = np.load(os.path.join(os.path.dirname(base),'cam1_cam2.npz'))
