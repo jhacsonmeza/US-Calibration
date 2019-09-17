@@ -19,6 +19,7 @@ def natsort(l):
     
     return sorted(l, key=alphanum_key)
 
+
 def dst(l,p):
     '''
     Function to compute the 2D distance between a point and a line
@@ -193,6 +194,51 @@ def match(c1, c2, F):
     idx = np.argmin(abs(d), 0) # Minimum value (score) in the rows direction
     
     return c2[idx]
+
+
+def centers3D(P1, P2, c1, c2):
+    '''
+    Function to compute the 3D coordinates of centers of each concentric circle
+    through triangulation. c1 and c2 have the unarranged (unmatched) image 
+    coordinates of centers, hence based on reprojection error we look for 
+    correct correspondences, i.e., the pair of points with minimum reprojection
+    error are considered correspondences.
+    
+    input:
+        P1: projection matrix of camera 1
+        P2: projection matrix of camera 2
+        c1: 3 x 1 x 2 matrix with image coordinates of concentric circle 
+            centers in camera 1
+        c2: 3 x 1 x 2 matrix with image coordinates of concentric circle 
+            centers in camera 2
+        
+    output:
+        C matrix with unlabel 3D coordinates of centers
+    '''
+    
+    C = []
+    for p in c1:
+        d = np.array([])
+        pts3D = []
+        for p1, p2 in itertools.product([p],c2):
+            # Triangulate
+            X = cv2.triangulatePoints(P1,P2,p1.T,p2.T)
+            
+            # Reproject Points
+            x = P1 @ X
+            x = x[:2]/x[-1]
+            
+            # Save point and convert from homogeneous to Euclidean
+            pts3D.append(X[:3]/X[-1])
+            
+            # Reprojection error in pixels
+            d = np.r_[d, np.linalg.norm(x.flatten()-p1)]
+        
+        ind = np.argsort(d)[0]
+        C.append(np.array(pts3D)[ind])
+        c2 = np.delete(c2, ind, 0)
+    
+    return np.hstack(C) # Each column is a 3D point
 
 
 def label(X):
