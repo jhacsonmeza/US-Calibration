@@ -6,7 +6,7 @@ import scipy.io as sio
 import itertools
 
 
-base = os.path.relpath('Calibration datasets/Calibration test 19-06-08/')
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/')
 paths = [os.path.join(base, x) for x in os.listdir(base) if 'data' in x]
 
 
@@ -17,12 +17,19 @@ calib = calibration.Calibration()
 f, J = calib.model()
 
 
-# US image points to evaluate. Probe depth: 7 cm.
+'''# US image points to evaluate. Probe depth: 7 cm.
 c = np.array([115.,200.]) # Center of image
 tl = np.array([0.,0.]) # Top left point
 tr = np.array([230.,0.]) # Top right point
 bl = np.array([0.,400.]) # Bottom left point
-br = np.array([230.,400.]) # Bottom right point
+br = np.array([230.,400.]) # Bottom right point'''
+
+# US image points to evaluate. Probe depth: 5 cm.
+c = np.array([151.,204.5]) # Center of image
+tl = np.array([0.,0.]) # Top left point
+tr = np.array([322.,0.]) # Top right point
+bl = np.array([0.,409.]) # Bottom left point
+br = np.array([322.,409.]) # Bottom right point
 
 rc = []
 rtr = []
@@ -116,10 +123,10 @@ print('\nPrecision at bottom right corner = {}'.format(sum(pre)/len(pre)))
 
 # Estimate final parameters
 xhat = np.array(xhat)
-xhat = xhat.mean(0) # Mean of all calibration parameters of each calibration
+xhatm = xhat.mean(0) # Mean of all calibration parameters of each calibration
 
-sxm, sym = xhat[0], xhat[1]
-T_I_Pm = calib.T(xhat[2], xhat[3], xhat[4], xhat[5], xhat[6], xhat[7])
+sxm, sym = xhatm[0], xhatm[1]
+T_I_Pm = calib.T(xhatm[2], xhatm[3], xhatm[4], xhatm[5], xhatm[6], xhatm[7])
 
 # Save calibration results
 sio.savemat(os.path.join(base,'USparams.mat'), 
