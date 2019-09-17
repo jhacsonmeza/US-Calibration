@@ -8,7 +8,7 @@ import scipy.io as sio
 
 
 # Root path
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/data1')
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/data2')
 
 
 # Set window name and size
@@ -20,8 +20,8 @@ I1 = target.natsort(glob.glob(os.path.join(base,'L','*bmp')))
 I2 = target.natsort(glob.glob(os.path.join(base,'R','*bmp')))
 
 # Load stereo calibration parameters
-#Params = np.load(os.path.join(os.path.dirname(base),'cam1_cam2.npz'))
-Params = sio.loadmat(os.path.join(os.path.dirname(base),'Params.mat'))
+Params = np.load(os.path.join(os.path.dirname(base),'cam1_cam2.npz'))
+#Params = sio.loadmat(os.path.join(os.path.dirname(base),'Params.mat'))
 K1 = Params['K1']
 K2 = Params['K2']
 R = Params['R']
@@ -39,7 +39,7 @@ axes = 40*np.array([[1.,0,0], [0,1.,0], [0,0,1.]]) # axes for drawAxes
 
 T_P_W = []
 errs = []
-for im1n, im2n in zip(I1[:22],I2[:22]):
+for im1n, im2n in zip(I1,I2):
     im1 = cv2.imread(im1n)
     im2 = cv2.imread(im2n)
     
@@ -57,14 +57,8 @@ for im1n, im2n in zip(I1[:22],I2[:22]):
     c1 = cv2.undistortPoints(c1, K1, dist1, None, None, K1)
     c2 = cv2.undistortPoints(c2, K2, dist2, None, None, K2)
     
-    # Rearrange c2 in order to match the points with c1
-    c2 = target.match(c1, c2, F)
-    
-    
-    
-    # Estimate 3D coordinate of the concentric circles through triangulation
-    X = cv2.triangulatePoints(P1, P2, c1, c2)
-    X = X[:3]/X[-1] # Convert coordinates from homogeneous to Euclidean
+    # Estimate unlabel 3D coordinates of centers
+    X = target.centers3D(P1, P2, c1, c2)
     
     
     # Label the 3D coordinates of the center of each concentric circle as:
@@ -73,7 +67,6 @@ for im1n, im2n in zip(I1[:22],I2[:22]):
     Xo, Xx, Xy = target.label(X)
     errs.append([abs(np.linalg.norm(Xo-Xx)-25)/25,
                  abs(np.linalg.norm(Xo-Xy)-40)/40])
-#    print(np.linalg.norm(Xo-Xx),np.linalg.norm(Xo-Xy))
     
     # Target pose estimation
     Rmat, tvec = target.getPose(Xo, Xx, Xy)
