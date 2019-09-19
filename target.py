@@ -383,24 +383,28 @@ def drawCenters(im1, im2, K1, K2, R, t, dist1, dist2, Xo, Xx, Xy):
     return im1, im2
 
 
-def drawEpilines(img,lines):
+def drawEpilines(img, x, view, F):
     '''
-    Function to draw the epipolar lines in the image.
+    Function to draw three epipolar lines in the image.
     
     input:
         img: image on which draw the epilines
-        lines: corresponding epilines
+        x: 3 x 1 x 2 array with points in a first view to estimate epipolar
+            lines in a second view
+        view: index of the image (1 or 2) that contains the points
+        F: Fundamental matrix
     
     output:
         image with epilines
     '''
-    r,c = img.shape
-    img = cv2.cvtColor(img,cv2.COLOR_GRAY2BGR)
-    for r in lines:
-        color = tuple(np.random.randint(0,255,3).tolist())
-        x0,y0 = map(int, [0, -r[2]/r[1] ])
-        x1,y1 = map(int, [c, -(r[2]+r[0]*c)/r[1] ])
-        img = cv2.line(img, (x0,y0), (x1,y1), color,3)
+    lines = cv2.computeCorrespondEpilines(x, view, F)
+    
+    r,c,_ = img.shape
+    color = ((255,0,0),(0,255,0),(0,0,255))
+    for i,r in enumerate(lines):
+        x0,y0 = map(int, [0, -r[0,2]/r[0,1] ])
+        x1,y1 = map(int, [c, -(r[0,2]+r[0,0]*c)/r[0,1] ])
+        img = cv2.line(img, (x0,y0), (x1,y1), color[i],5)
     return img
 
 
