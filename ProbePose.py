@@ -8,12 +8,12 @@ import scipy.io as sio
 
 
 # Root path
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/data2')
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-18/data1')
 
 
 # Set window name and size
 cv2.namedWindow('Detection', cv2.WINDOW_NORMAL)
-cv2.resizeWindow('Detection', 640*2, 512)
+cv2.resizeWindow('Detection', 1792, 717)
 
 # Read left and right images of the target
 I1 = target.natsort(glob.glob(os.path.join(base,'L','*bmp')))
@@ -56,8 +56,14 @@ for im1n, im2n in zip(I1,I2):
     c2 = cv2.undistortPoints(c2, K2, dist2, None, None, K2)
     
     
-    # Estimate unlabel 3D coordinates of centers
-    X = target.centers3D(P1, P2, c1, c2)
+    # Rearrange c2 in order to match the points with c1
+    c2 = target.match(c1, c2, F)
+    
+    # Estimate 3D coordinate of the concentric circles through triangulation
+    X = cv2.triangulatePoints(P1, P2, c1, c2)
+    X = X[:3]/X[-1] # Convert coordinates from homogeneous to Euclidean
+    
+    
     
     # Label the 3D coordinates of the center of each concentric circle as:
     # Xo (origin of target frame), Xx (point in x-axis direction), and
@@ -74,9 +80,10 @@ for im1n, im2n in zip(I1,I2):
     
     
     ############################ Visualize results ############################
-#    target.drawAxes(im1, K1, dist1, Rmat, tvec)
+    target.drawAxes(im1, K1, dist1, Rmat, tvec)
+    target.drawEpilines(im2, c1, 1, F)
 #    target.drawCub(im1, K1, dist1, Rmat, tvec)
-    target.drawCenters(im1, im2, K1, K2, R, t, dist1, dist2, Xo, Xx, Xy)
+#    target.drawCenters(im1, im2, K1, K2, R, t, dist1, dist2, Xo, Xx, Xy)
     
     cv2.imshow('Detection',np.hstack([im1,im2]))
     if cv2.waitKey(500) & 0xFF == 27:
@@ -84,6 +91,7 @@ for im1n, im2n in zip(I1,I2):
         
 
 cv2.destroyAllWindows()
+print('Errors: {}'.format(np.array(errs).mean(0)))
 
 # Save variables
 with open(os.path.join(base,'probe_pose.pkl'), 'wb') as file:
