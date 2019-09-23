@@ -167,8 +167,10 @@ def detect(im, global_th=True, th_im=False):
 def match(c1, c2, F):
     '''
     Find the corresponding point in image 2 of the centers in the firsrt view
-    using the epipolar line and by looking for the center of the second view
-    closest to each epipolar line.
+    by estimating the epipolar constraint (x'^T F x = 0) between the points in
+    the first view and all the possible correspondences in the second view.
+    Matches with lowest epipolar constraint scores (ideally 0) are the true
+    correspondences.
     
     input:
         c1: 3 x 1 x 2 matrix with image coordinates of concentric circle
@@ -180,20 +182,21 @@ def match(c1, c2, F):
     output:
         * c2 correspondences of points c1 (c2 rearranged).
     '''
+    # Convert points to homogeneous
+    x1 = cv2.convertPointsToHomogeneous(c1)
+    x2 = cv2.convertPointsToHomogeneous(c2)
     
-    # Calculate normalized epipolar lines in the second image
-    l2 = cv2.computeCorrespondEpilines(c1, 1, F)
+    # Permutation of all possible mathces of the three points in the 2nd view
+    indexes = np.array(list(itertools.permutations([0,1,2])))
     
-    # As line is normalized so that a^2+b^2=1, we can calculate the distance 
-    # between the line and a point using the dot product. If a point lies in a
-    # line, scalar product must be zero. Calculate dot product between all the 
-    # points of the image 2 with each epipolar line (x^T l).
-    d = cv2.convertPointsToHomogeneous(c2)[:,0,:] @ l2[:,0,:].T
+    # Estimate the epipolar constraint with all the possible matches of c1
+    # epc^ijk = x'^ijr F_rs x^ks
+    epc = np.einsum('ijr,rs,ks->ijk', x2[indexes].reshape(6,3,3), F, x1[:,0,:])
+    # Scores are in the diagonal of each 2D array of the 3D tensor
+    # We look for the lowest norm of the values in the diagonal
+    ind = np.argmin(np.linalg.norm(np.einsum('ijj->ij',epc),axis=1))
     
-    # Idx is in such a way that i-th row of c1 match with the i-th row of c2 
-    idx = np.argmin(abs(d), 0) # Minimum value (score) in the rows direction
-    
-    return c2[idx]
+    return c2[indexes[ind]]
 
 
 def centers3D(P1, P2, c1, c2):
