@@ -1,5 +1,4 @@
 import os
-import pickle
 import numpy as np
 import calibration
 import scipy.io as sio
@@ -43,9 +42,7 @@ for i, path in enumerate(paths):
     print('calibration {}/{}'.format(i+1,len(paths)))
     
     # load known variables
-    with open(os.path.join(path,'probe_pose.pkl'),'rb') as file:
-        T_T_W = pickle.load(file)
-
+    T_T_W = np.load(os.path.join(path,'target_pose.npy'))
     pts = sio.loadmat(os.path.join(path,'crossP.mat'))['crossP']
 
 

@@ -2,13 +2,12 @@ import os
 import cv2
 import glob
 import target
-import pickle
 import numpy as np
 import scipy.io as sio
 
 
 # Root path
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-18/data1')
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-23/data1')
 
 
 # Set window name and size
@@ -94,5 +93,4 @@ cv2.destroyAllWindows()
 print('Errors: {}'.format(np.array(errs).mean(0)))
 
 # Save variables
-with open(os.path.join(base,'probe_pose.pkl'), 'wb') as file:
-    pickle.dump(T_T_W, file)
+np.save(os.path.join(base,'target_pose.npy'),np.dstack(T_T_W).transpose(2,0,1))

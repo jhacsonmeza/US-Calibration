@@ -80,9 +80,9 @@ class Calibration:
         
         * pts: N x 2 array with the cross-wire image coordinates of the
         ultrasound images.
-        * T_T_W: list with the N transformation matrices T_T_W (which describe
-        the probe frame relative to the world frame) given by the target pose
-        estimation.
+        * T_T_W: N x 4 x 4 array with the N transformation matrices T_T_W 
+        (which describe the probe frame relative to the world frame) given by
+        the target pose estimation.
         '''
         
         self.pts = pts

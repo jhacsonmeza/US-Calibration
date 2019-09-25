@@ -1,5 +1,4 @@
 import os
-import pickle
 import numpy as np
 import calibration
 import scipy.io as sio
@@ -10,9 +9,7 @@ base = os.path.relpath('Calibration datasets/Calibration test 19-09-23/data1')
 
 
 # load known variables
-with open(os.path.join(base,'probe_pose.pkl'),'rb') as file:
-    T_T_W = pickle.load(file)
-
+T_T_W = np.load(os.path.join(base,'target_pose.npy'))
 pts = sio.loadmat(os.path.join(base,'crossP.mat'))['crossP']
 
 
