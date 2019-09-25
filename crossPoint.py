@@ -3,7 +3,6 @@ import cv2
 import glob
 import target
 import numpy as np
-import scipy.io as sio
 from matplotlib import pyplot as plt
 
 
@@ -24,6 +23,5 @@ for imn in I:
     
     pts.append(p[0])
 
-pts = np.array(pts)
-
-sio.savemat(os.path.join(base,'crossP.mat'), {'crossP':pts})
+# Save image points coordinates
+np.save(os.path.join(base,'cross_point.npy'), np.array(pts))

@@ -43,7 +43,7 @@ for i, path in enumerate(paths):
     
     # load known variables
     T_T_W = np.load(os.path.join(path,'target_pose.npy'))
-    pts = sio.loadmat(os.path.join(path,'crossP.mat'))['crossP']
+    pts = np.load(os.path.join(path,'cross_point.npy'))
 
 
     # Set input data and calibrate

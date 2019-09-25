@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import calibration
-import scipy.io as sio
 
 
 
@@ -10,7 +9,7 @@ base = os.path.relpath('Calibration datasets/Calibration test 19-09-23/data1')
 
 # load known variables
 T_T_W = np.load(os.path.join(base,'target_pose.npy'))
-pts = sio.loadmat(os.path.join(base,'crossP.mat'))['crossP']
+pts = np.load(os.path.join(base,'cross_point.npy'))
 
 
 # Create calibration object
