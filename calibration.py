@@ -13,12 +13,12 @@ class Calibration:
     iterative minimization method with the Levenberg-Marquardt algorithm.
     
     For the transformation matrices, we use the following convention: in
-    latex the transformation matrix ^jT_i that represents the
-    transformation from i to j, or the transformation matrix of the frame i
-    relative to the j frame, it will be written in the code as T_i_j.
+    "latex notation" the transformation matrix ^jT_i that represents the
+    transformation from i to j, or that describe the frame i relative to the
+    frame j, it will be written in the code as T_i_j.
     
-    Our mathematial model notation in the calibration model is the following:
-    [0, 0, 0, 1]^T = T_W_C * T_P_W * T_I_P * [sx*u, sy*v, 0, 1]^T
+    Our mathematial notation in the calibration model is the following:
+    [0, 0, 0, 1]^T = T_W_F * T_T_W * T_I_T * [sx*u, sy*v, 0, 1]^T
     where:
     
     -> sx and sy are fixed and represent the scale factor of the ultrasound
@@ -28,35 +28,35 @@ class Calibration:
     the cross-wire ultrasound image coordinates in x and y directions,
     respectively.
     
-    -> T_I_P is fixed and represents the transformation from the ultrasound
-    image frame {I} to the ultrasound probe frame {P} represented by the target
-    of three concentric circles placed in the probe.
+    -> T_I_T is fixed and represents the transformation from the ultrasound
+    image frame {I} to the ultrasound transducer frame {T} represented by the 
+    target of the three coplanar circles placed in the probe.
     
-    -> T_P_W is different for each ultrasound image and represents the
-    transformation from the ultrasound probe frame {P} to the world coordinates
+    -> T_T_W is different for each ultrasound image and represents the
+    transformation from the transducer frame {T} to the world coordinates
     system {W} represented by the stereo vision system (left camera).
     
-    -> T_W_C is fixed and represents the transformation from the world
-    frame {W} to the cross-wire frame {C} where its origin is located in the
-    point of the crossing of wires.
+    -> T_W_F is fixed and represents the transformation from the world
+    frame {W} to the cross-wire phatom frame {F} where its origin is located
+    in the point of the crossing of wires.
     '''
     
     
-    def __init__(self, pts=None, T_P_W=None):
+    def __init__(self, pts=None, T_T_W=None):
         '''
         Init known variables needed in the calibration process if are
         provided in the construction of the object. By default are None.
         
         Also, init symbolic variables used in the calibration equations to
-        construct and solve.
+        construct and solve them.
         '''
         
-        # If provided, init pts and T_P_W
-        if pts is not None and T_P_W is not None:
-            self.setData(pts, T_P_W)
+        # If provided, init pts and T_T_W
+        if pts is not None and T_T_W is not None:
+            self.setData(pts, T_T_W)
         
         
-        # Symbolic variables for known transformation T_P_W
+        # Symbolic variables for known transformation T_T_W
         self.c11, self.c12, self.c13, self.c14 = sym.symbols('c11 c12 c13 c14')
         self.c21, self.c22, self.c23, self.c24 = sym.symbols('c21 c22 c23 c24')
         self.c31, self.c32, self.c33, self.c34 = sym.symbols('c31 c32 c33 c34')
@@ -65,8 +65,8 @@ class Calibration:
         self.u, self.v = sym.symbols('u v')
         
         # Symbolic variables for unknowns:
-        # from T_W_C: tx -> x1, ty -> x2, tz -> x3
-        # from T_I_P: tx -> x4, ty -> x5, tz -> x6, az -> x7, ay -> x8, ax -> x9
+        # from T_W_F: tx -> x1, ty -> x2, tz -> x3
+        # from T_I_T: tx -> x4, ty -> x5, tz -> x6, az -> x7, ay -> x8, ax -> x9
         # sx -> x10, sy -> x11
         self.x1, self.x2, self.x3 = sym.symbols('x1 x2 x3')
         self.x4, self.x5, self.x6 = sym.symbols('x4 x5 x6')
@@ -74,25 +74,25 @@ class Calibration:
         self.x10, self.x11 = sym.symbols('x10 x11')
     
     
-    def setData(self, pts, T_P_W):
+    def setData(self, pts, T_T_W):
         '''
         Set the known variables needed in the calibration problem:
         
         * pts: N x 2 array with the cross-wire image coordinates of the
         ultrasound images.
-        * T_P_W: list with the N transformation matrices T_P_W (from the
-        probe frame respect to world frame) given by the target pose
+        * T_T_W: list with the N transformation matrices T_T_W (which describe
+        the probe frame relative to the world frame) given by the target pose
         estimation.
         '''
         
         self.pts = pts
-        self.T_P_W = T_P_W
+        self.T_T_W = T_T_W
     
     
     def T(self, tx, ty, tz, az, ay, ax):
         R = Rotation.from_euler('xyz',[ax,ay,az]).as_dcm()
         
-        return np.r_[np.c_[R, [tx,ty,tz]], np.array([[0,0,0,1]])]
+        return np.r_[np.c_[R, [tx,ty,tz]], [[0,0,0,1]]]
         
     
     
@@ -101,7 +101,7 @@ class Calibration:
         Create the three calibration equations symbolically, given by the
         following model:
             
-        [0, 0, 0, 1]^T = T_W_C * T_P_W * T_I_P * [sx*u, sy*v, 0, 1]^T,
+        [0, 0, 0, 1]^T = T_W_F * T_T_W * T_I_T * [sx*u, sy*v, 0, 1]^T,
         
         where for each cross-wire ultrasound image we have the above three
         equiations. Moreover, the Jacobin matrix of these three equations is
@@ -114,7 +114,7 @@ class Calibration:
         '''
         
         # Variables for rotation matrices and general transformation 
-        # matrix T_i_j (^jT_i, i frame respect to j frame).
+        # matrix T_i_j (^jT_i, frame i relative to frame j).
         ax, ay, az, tx, ty, tz = sym.symbols('ax ay az tx ty tz')
         
         Rx = sym.Matrix([[1,0,0],
@@ -133,19 +133,19 @@ class Calibration:
                 sym.Matrix([[0,0,0,1]]))
     
         
-        # Model: [0, 0, 0, 1]^T = T_W_C * T_P_W * T_I_P * [sx*u, sy*v, 0, 1]^T
-        T_W_C = T.subs({tx:self.x1,ty:self.x2,tz:self.x3,az:0,ay:0,ax:0})
+        # Model: [0, 0, 0, 1]^T = T_W_F * T_T_W * T_I_T * [sx*u, sy*v, 0, 1]^T
+        T_W_F = T.subs({tx:self.x1,ty:self.x2,tz:self.x3,az:0,ay:0,ax:0})
     
-        # Known transformation T_P_W (given in the target pose estimation)
-        T_P_W = sym.Matrix([[self.c11,self.c12,self.c13,self.c14],
+        # Known transformation T_T_W (given in the target pose estimation)
+        T_T_W = sym.Matrix([[self.c11,self.c12,self.c13,self.c14],
                             [self.c21,self.c22,self.c23,self.c24],
                             [self.c31,self.c32,self.c33,self.c34],
                             [0,0,0,1]])
         
-        T_I_P = T.subs({tx:self.x4,ty:self.x5,tz:self.x6,
+        T_I_T = T.subs({tx:self.x4,ty:self.x5,tz:self.x6,
                         az:self.x7,ay:self.x8,ax:self.x9})
         
-        f = T_W_C*T_P_W*T_I_P*sym.Matrix([self.x10*self.u,self.x11*self.v,0,1])
+        f = T_W_F*T_T_W*T_I_T*sym.Matrix([self.x10*self.u,self.x11*self.v,0,1])
         
         f = f[:3,0]
         Jf = f.jacobian([self.x1,self.x2,self.x3,self.x4,self.x5,self.x6,
@@ -158,20 +158,20 @@ class Calibration:
         '''
         Compute a least squares initial estimation of the US calibration:
         min||Ax-b|| where
-        * A = [ui*R_P_Wi, vi*R_P_Wi, R_P_Wi, -I] is a 3n x 12 matrix (n>=4).
-        * x = [sx*R_I_P[:,0], sy*R_I_P[:,1], t_I_P, t_W_C] is a 12 x 1 vector. 
-        * and b = [-t_P_W] is a 3n x 1 vector.
+        * A = [ui*R_T_Wi, vi*R_T_Wi, R_T_Wi, -I] is a 3n x 12 matrix (n>=4).
+        * x = [sx*R_I_T[:,0], sy*R_I_T[:,1], t_I_T, t_W_F] is a 12 x 1 vector. 
+        * and b = [-t_T_W] is a 3n x 1 vector.
         '''
         
         # create the A and B matrices
         A = []
         b = []
-        for ptsi, T_P_Wi in zip(self.pts, self.T_P_W):
+        for ptsi, T_T_Wi in zip(self.pts, self.T_T_W):
             
-            R_P_W, t_P_W = T_P_Wi[:3,:3], T_P_Wi[:3,-1]
+            R_T_W, t_T_W = T_T_Wi[:3,:3], T_T_Wi[:3,-1]
         
-            A.append(np.c_[ptsi[0]*R_P_W, ptsi[1]*R_P_W, R_P_W, -np.eye(3)])
-            b.append(-t_P_W)
+            A.append(np.c_[ptsi[0]*R_T_W, ptsi[1]*R_T_W, R_T_W, -np.eye(3)])
+            b.append(-t_T_W)
         
         
         A = np.vstack(A) # Vertical concatenation of each matrix
@@ -182,20 +182,20 @@ class Calibration:
         sx = np.linalg.norm(x[:3])
         sy = np.linalg.norm(x[3:6])
         
-        # Get rotation angles from R_I_P
+        # Get rotation angles from R_I_T
         r1 = x[:3]/sx
         r2 = x[3:6]/sy
         r3 = np.cross(r1, r2)
-        R_I_P = np.c_[r1, r2, r3] # is not necessarily a rotation matrix. The
+        R_I_T = np.c_[r1, r2, r3] # is not necessarily a rotation matrix. The
                                   # orthonormality constraints were not 
                                   # enforced
         
         # get the closest (Frobenius norm) rotation matrix via SVD
-        U, S, Vh = np.linalg.svd(R_I_P)
-        R_I_P = U @ Vh.T
+        U, S, Vh = np.linalg.svd(R_I_T)
+        R_I_T = U @ Vh.T
         
         # extract the Euler angles
-        ax, ay, az = Rotation.from_dcm(R_I_P).as_euler('xyz')
+        ax, ay, az = Rotation.from_dcm(R_I_T).as_euler('xyz')
         
         return x[9], x[10], x[11], x[6], x[7], x[8], az, ay, ax, sx, sy
     
@@ -214,8 +214,8 @@ class Calibration:
         eq = sym.Matrix()
         Jeq = sym.Matrix()
         
-        for ptsi, T_P_Wi in zip(self.pts, self.T_P_W):
-            Ri, ti = T_P_Wi[:3,:3], T_P_Wi[:3,-1]
+        for ptsi, T_T_Wi in zip(self.pts, self.T_T_W):
+            Ri, ti = T_T_Wi[:3,:3], T_T_Wi[:3,-1]
             
             # Replace known variables in equations and Jacobian matrix, and
             # add to the respective matrices f and Jeq.

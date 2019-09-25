@@ -35,7 +35,7 @@ P1 = K1 @ np.c_[np.eye(3), np.zeros(3)]
 P2 = K2 @ np.c_[R, t]
 
 
-T_P_W = []
+T_T_W = []
 errs = []
 for im1n, im2n in zip(I1,I2):
     im1 = cv2.imread(im1n)
@@ -76,7 +76,7 @@ for im1n, im2n in zip(I1,I2):
     Rmat, tvec = target.getPose(Xo, Xx, Xy)
     
     # Save pose
-    T_P_W.append(np.r_[np.c_[Rmat, tvec], [[0,0,0,1]]])
+    T_T_W.append(np.r_[np.c_[Rmat, tvec], [[0,0,0,1]]])
     
     
     ############################ Visualize results ############################
@@ -95,4 +95,4 @@ print('Errors: {}'.format(np.array(errs).mean(0)))
 
 # Save variables
 with open(os.path.join(base,'probe_pose.pkl'), 'wb') as file:
-    pickle.dump(T_P_W, file)
+    pickle.dump(T_T_W, file)

@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed May  1 13:10:26 2019
-
-@author: Jhacson Meza
-"""
-
 import os
 import cv2
 import glob
@@ -20,7 +13,6 @@ base = os.path.relpath('Calibration datasets/Calibration test 19-09-23/data1')
 I = target.natsort(glob.glob(os.path.join(base,'UScrop','*.bmp')))
 
 pts =[]
-T_P_W = []
 for imn in I:
     im = cv2.imread(imn, 0)
     

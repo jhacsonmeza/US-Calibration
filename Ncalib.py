@@ -44,13 +44,13 @@ for i, path in enumerate(paths):
     
     # load known variables
     with open(os.path.join(path,'probe_pose.pkl'),'rb') as file:
-        T_P_W = pickle.load(file)
+        T_T_W = pickle.load(file)
 
     pts = sio.loadmat(os.path.join(path,'crossP.mat'))['crossP']
 
 
     # Set input data and calibrate
-    calib.setData(pts, T_P_W)
+    calib.setData(pts, T_T_W)
     eq, Jeq = calib.calibEquations(f, J)
     x, error = calib.iterativeCalibraion(eq, Jeq)
     rms = np.append(rms, error)
@@ -58,17 +58,17 @@ for i, path in enumerate(paths):
     
     # Get optimal parameters necessary for quality evaluation
     sx, sy = x[9], x[10]
-    T_I_P = calib.T(x[3], x[4], x[5], x[6], x[7], x[8])
+    T_I_T = calib.T(x[3], x[4], x[5], x[6], x[7], x[8])
     
     # Save optimal paramters
     xhat.append([x[9], x[10], x[3], x[4], x[5], x[6], x[7], x[8]])
     
     # Reconstruct different points of the US image in the target/probe frame
-    rc.append(T_I_P @ np.array([sx*c[0],sy*c[1],0,1])) # centre
-    rtr.append(T_I_P @ np.array([sx*tr[0],sy*tr[1],0,1])) # top right pixel
-    rtl.append(T_I_P @ np.array([sx*tl[0],sy*tl[1],0,1])) # top left pixel
-    rbr.append(T_I_P @ np.array([sx*br[0],sy*br[1],0,1])) # bottom right point
-    rbl.append(T_I_P @ np.array([sx*bl[0],sy*bl[1],0,1])) # bottom left point
+    rc.append(T_I_T @ np.array([sx*c[0],sy*c[1],0,1])) # centre
+    rtr.append(T_I_T @ np.array([sx*tr[0],sy*tr[1],0,1])) # top right pixel
+    rtl.append(T_I_T @ np.array([sx*tl[0],sy*tl[1],0,1])) # top left pixel
+    rbr.append(T_I_T @ np.array([sx*br[0],sy*br[1],0,1])) # bottom right point
+    rbl.append(T_I_T @ np.array([sx*bl[0],sy*bl[1],0,1])) # bottom left point
 
 
 print('\n-> Results for a total of {} calibrations:'.format(len(paths)))
@@ -126,8 +126,8 @@ xhat = np.array(xhat)
 xhatm = xhat.mean(0) # Mean of all calibration parameters of each calibration
 
 sxm, sym = xhatm[0], xhatm[1]
-T_I_Pm = calib.T(xhatm[2], xhatm[3], xhatm[4], xhatm[5], xhatm[6], xhatm[7])
+T_I_Tm = calib.T(xhatm[2], xhatm[3], xhatm[4], xhatm[5], xhatm[6], xhatm[7])
 
 # Save calibration results
 sio.savemat(os.path.join(base,'USparams.mat'), 
-            {'sx':sxm,'sy':sym,'T_I_P':T_I_Pm})
+            {'sx':sxm,'sy':sym,'T_I_T':T_I_Tm})
