@@ -126,5 +126,4 @@ sxm, sym = xhatm[0], xhatm[1]
 T_I_Tm = calib.T(xhatm[2], xhatm[3], xhatm[4], xhatm[5], xhatm[6], xhatm[7])
 
 # Save calibration results
-sio.savemat(os.path.join(base,'USparams.mat'), 
-            {'sx':sxm,'sy':sym,'T_I_T':T_I_Tm})
+np.savez(os.path.join(base,'USparams.npz'), sx=sxm, sy=sym, T_I_T=T_I_Tm)
