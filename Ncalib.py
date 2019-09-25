@@ -6,7 +6,7 @@ import scipy.io as sio
 import itertools
 
 
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/')
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-23/')
 paths = [os.path.join(base, x) for x in os.listdir(base) if 'data' in x]
 
 
@@ -25,7 +25,7 @@ bl = np.array([0.,400.]) # Bottom left point
 br = np.array([230.,400.]) # Bottom right point'''
 
 # US image points to evaluate. Probe depth: 5 cm.
-c = np.array([151.,204.5]) # Center of image
+c = np.array([161.,204.5]) # Center of image
 tl = np.array([0.,0.]) # Top left point
 tr = np.array([322.,0.]) # Top right point
 bl = np.array([0.,409.]) # Bottom left point
@@ -56,43 +56,32 @@ for i, path in enumerate(paths):
     rms = np.append(rms, error)
     
     
-    # Get optimal parameters needed for quality evaluation    
+    # Get optimal parameters necessary for quality evaluation
     sx, sy = x[9], x[10]
     T_I_P = calib.T(x[3], x[4], x[5], x[6], x[7], x[8])
     
     # Save optimal paramters
     xhat.append([x[9], x[10], x[3], x[4], x[5], x[6], x[7], x[8]])
     
-    
-    # Compute centre of US image in the probe frame
-    rc.append(T_I_P @ np.array([sx*c[0],sy*c[1],0,1]))
-    
-    # Compute top right point of US image in the probe frame
-    rtr.append(T_I_P @ np.array([sx*tr[0],sy*tr[1],0,1]))
-    
-    # Compute top left point of US image in the probe frame
-    rtl.append(T_I_P @ np.array([sx*tl[0],sy*tl[1],0,1]))
-    
-    # Compute bottom right point of US image in the probe frame
-    rbr.append(T_I_P @ np.array([sx*br[0],sy*br[1],0,1]))
-    
-    # Compute bottom left point of US image in the probe frame
-    rbl.append(T_I_P @ np.array([sx*bl[0],sy*bl[1],0,1]))
+    # Reconstruct different points of the US image in the target/probe frame
+    rc.append(T_I_P @ np.array([sx*c[0],sy*c[1],0,1])) # centre
+    rtr.append(T_I_P @ np.array([sx*tr[0],sy*tr[1],0,1])) # top right pixel
+    rtl.append(T_I_P @ np.array([sx*tl[0],sy*tl[1],0,1])) # top left pixel
+    rbr.append(T_I_P @ np.array([sx*br[0],sy*br[1],0,1])) # bottom right point
+    rbl.append(T_I_P @ np.array([sx*bl[0],sy*bl[1],0,1])) # bottom left point
+
+
+print('\n-> Results for a total of {} calibrations:'.format(len(paths)))
 
 
 # Report mean RMS error of all equations
-print('\nMean RMS error = {} mm with {} calibrations'.format(
-        rms.mean(), len(paths)))
+print('\nMean RMS error of equations = {} mm'.format(rms.mean()))
 
 
-# Calculate calibration reproducibility precision at center of image
+# Calculate calibration reproducibility precision at the five image points
 rc = np.array(rc)
 errc = np.linalg.norm(rc-rc.mean(0),axis=1)
-mu_CR = errc.mean()
-print('\n\u03BC_CR at center = {} mm with {} calibrations'.format(
-        mu_CR, len(paths)))
 
-# Calculate calibration reproducibility precision at the four corners of image
 rtr = np.array(rtr)
 errtr = np.linalg.norm(rtr-rtr.mean(0),axis=1)
 
@@ -105,20 +94,31 @@ errbr = np.linalg.norm(rbr-rbr.mean(0),axis=1)
 rbl = np.array(rbl)
 errbl = np.linalg.norm(rbl-rbl.mean(0),axis=1)
 
-mu_CR_mean = np.array([errc.mean(), errtr.mean(), errtl.mean(), errbr.mean(), 
-                       errbl.mean()]).mean()
+mu_CR1_mean = np.array([errc.mean(), errtr.mean(), errtl.mean(), errbr.mean(),
+                        errbl.mean()]).mean()
+print('\n\u03BC_CR1 at center = {} mm'.format(errc.mean()))
+print('\u03BC_CR1 at bottom right = {} mm'.format(errbr.mean()))
+print('\u03BC_CR1 mean = {} mm'.format(mu_CR1_mean))
 
-print('\n\u03BC_CR mean = {} mm with {} calibrations'.format(
-        mu_CR_mean, len(paths)))
 
+# Calculate precision with all possible pairs of calibrations in each point
+errc2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                  itertools.combinations(rc,2)])
+errtr2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                   itertools.combinations(rtr,2)])
+errtl2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                   itertools.combinations(rtl,2)])
+errbr2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                   itertools.combinations(rbr,2)])
+errbl2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                   itertools.combinations(rbl,2)])
 
-# Calculate precision with all possible pairs of calibrations at bottom right 
-# corner
-pre = []
-for p1, p2 in itertools.combinations(rbr,2):
-    pre.append(np.linalg.norm(p1-p2))
+mu_CR2_mean = np.array([errc2.mean(), errtr2.mean(), errtl2.mean(), 
+                        errbr2.mean(), errbl2.mean()]).mean()
+print('\n\u03BC_CR2 at center = {}'.format(errc2.mean()))
+print('\u03BC_CR2 at bottom right corner = {}'.format(errbr2.mean()))
+print('\u03BC_CR2 mean = {} mm'.format(mu_CR2_mean))
 
-print('\nPrecision at bottom right corner = {}'.format(sum(pre)/len(pre)))
 
 
 # Estimate final parameters
