@@ -8,15 +8,16 @@ Created on Wed May  1 13:10:26 2019
 import os
 import cv2
 import glob
+import target
 import numpy as np
 import scipy.io as sio
 from matplotlib import pyplot as plt
 
 
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/data2')
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-23/data1')
 
 
-I = sorted(glob.glob(os.path.join(base,'UScrop','*.bmp')),key=os.path.getctime)
+I = target.natsort(glob.glob(os.path.join(base,'UScrop','*.bmp')))
 
 pts =[]
 T_P_W = []
