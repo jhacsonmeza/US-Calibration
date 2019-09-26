@@ -26,8 +26,8 @@ K2 = Params['K2']
 R = Params['R']
 t = Params['t']
 F = Params['F']
-dist1 = Params['dist1'][0]
-dist2 = Params['dist2'][0]
+dist1 = Params['dist1']
+dist2 = Params['dist2']
 
 # Create projection matrices of camera 1 and camera 2
 P1 = K1 @ np.c_[np.eye(3), np.zeros(3)]
