@@ -1,11 +1,10 @@
 import os
 import numpy as np
 import calibration
-import scipy.io as sio
 import itertools
 
 
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-23/')
+base = os.path.relpath('Calibration datasets/Calibration test 19-06-08/')
 paths = [os.path.join(base, x) for x in os.listdir(base) if 'data' in x]
 
 
@@ -15,20 +14,16 @@ calib = calibration.Calibration()
 # Model construction
 f, J = calib.model()
 
+# US scan size
+w, h = 230., 400. # for 7 cm depth
+#w, h = 322., 409. # for 5 cm depth
 
-'''# US image points to evaluate. Probe depth: 7 cm.
-c = np.array([115.,200.]) # Center of image
+# US image points to evaluate.
+c = np.array([w/2,h/2]) # Center of image
 tl = np.array([0.,0.]) # Top left point
-tr = np.array([230.,0.]) # Top right point
-bl = np.array([0.,400.]) # Bottom left point
-br = np.array([230.,400.]) # Bottom right point'''
-
-# US image points to evaluate. Probe depth: 5 cm.
-c = np.array([161.,204.5]) # Center of image
-tl = np.array([0.,0.]) # Top left point
-tr = np.array([322.,0.]) # Top right point
-bl = np.array([0.,409.]) # Bottom left point
-br = np.array([322.,409.]) # Bottom right point
+tr = np.array([w,0.]) # Top right point
+bl = np.array([0.,h]) # Bottom left point
+br = np.array([w,h]) # Bottom right point
 
 rc = []
 rtr = []
@@ -39,7 +34,7 @@ rbl = []
 rms = np.array([])
 xhat = []
 for i, path in enumerate(paths):
-    print('calibration {}/{}'.format(i+1,len(paths)))
+    print('Calibration {}/{}'.format(i+1,len(paths)))
     
     # load known variables
     T_T_W = np.load(os.path.join(path,'target_pose.npy'))
