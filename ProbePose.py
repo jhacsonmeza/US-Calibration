@@ -7,7 +7,7 @@ import scipy.io as sio
 
 
 # Root path
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-23/data1')
+base = os.path.relpath('Calibration datasets/Calibration test 19-09-27/data3')
 
 
 # Set window name and size
@@ -71,17 +71,17 @@ for im1n, im2n in zip(I1,I2):
     errs.append([abs(np.linalg.norm(Xo-Xx)-25)/25,
                  abs(np.linalg.norm(Xo-Xy)-40)/40])
     
-    # Target pose estimation
-    Rmat, tvec = target.getPose(Xo, Xx, Xy)
+    # Target pose estimation relative to the left camera/world frame
+    R_T_W, t_T_W = target.getPose(Xo, Xx, Xy)
     
     # Save pose
-    T_T_W.append(np.r_[np.c_[Rmat, tvec], [[0,0,0,1]]])
+    T_T_W.append(np.r_[np.c_[R_T_W, t_T_W], [[0,0,0,1]]])
     
     
     ############################ Visualize results ############################
-    target.drawAxes(im1, K1, dist1, Rmat, tvec)
+    target.drawAxes(im1, K1, dist1, R_T_W, t_T_W)
     target.drawEpilines(im2, c1, 1, F)
-#    target.drawCub(im1, K1, dist1, Rmat, tvec)
+#    target.drawCub(im1, K1, dist1, R_T_W, t_T_W)
 #    target.drawCenters(im1, im2, K1, K2, R, t, dist1, dist2, Xo, Xx, Xy)
     
     cv2.imshow('Detection',np.hstack([im1,im2]))
