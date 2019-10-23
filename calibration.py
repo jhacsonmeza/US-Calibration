@@ -1,3 +1,5 @@
+import io
+import itertools
 import numpy as np
 import sympy as sym
 from scipy.optimize import root
@@ -281,3 +283,49 @@ class Calibration:
         rms = np.sqrt(np.mean(np.array(fmin)**2))
         
         return sol.x.tolist(), rms
+    
+    
+    def calibEvaluation(self, rms, rc, rtr, rtl, rbr, rbl):
+        n = rc.shape[0] # Number of calibrations
+        yield '-> Results for a total of {} calibrations:'.format(n)
+        
+        
+        # Report mean RMS error of equations
+        yield '\n\nMean RMS error of equations = {} mm'.format(rms.mean())
+        
+        
+        # Calculate calibration reproducibility precision at the five points
+        errc = np.linalg.norm(rc-rc.mean(0),axis=1)
+        errtr = np.linalg.norm(rtr-rtr.mean(0),axis=1)
+        errtl = np.linalg.norm(rtl-rtl.mean(0),axis=1)
+        errbr = np.linalg.norm(rbr-rbr.mean(0),axis=1)
+        errbl = np.linalg.norm(rbl-rbl.mean(0),axis=1)
+        
+        mu_CR1_mean = np.r_[errc,errtr,errtl,errbr,errbl].mean()
+        yield '\n\n\u03BC_CR1 at center = {} mm'.format(errc.mean())
+        yield '\n\u03BC_CR1 at bottom right = {} mm'.format(errbr.mean())
+        yield '\n\u03BC_CR1 mean = {} mm'.format(mu_CR1_mean)
+        
+        
+        # Precision with all possible pairs of calibrations in each point
+        errc = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                          itertools.combinations(rc,2)])
+        errtr = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                           itertools.combinations(rtr,2)])
+        errtl = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                           itertools.combinations(rtl,2)])
+        errbr = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                           itertools.combinations(rbr,2)])
+        errbl = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
+                           itertools.combinations(rbl,2)])
+        
+        mu_CR2_mean = np.r_[errc, errtr, errtl, errbr, errbl].mean()
+        yield '\n\n\u03BC_CR2 at center = {} mm'.format(errc.mean())
+        yield '\n\u03BC_CR2 at bottom right corner = {} mm'.format(errbr.mean())
+        yield '\n\u03BC_CR2 mean = {} mm'.format(mu_CR2_mean)
+
+
+    def writeReport(self, path, rms, rc, rtr, rtl, rbr, rbl):
+        with io.open(path, 'w', encoding='utf-8') as fp:
+            lines = self.calibEvaluation(rms, rc, rtr, rtl, rbr, rbl)
+            fp.writelines(lines)
