@@ -7,7 +7,7 @@ import scipy.io as sio
 
 
 # Root path
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-27/data3')
+base = os.path.relpath('Calibration datasets/Calibration test 19-10-24/data1')
 
 
 # Set window name and size
@@ -41,8 +41,8 @@ for im1n, im2n in zip(I1,I2):
     im2 = cv2.imread(im2n)
     
     # Target detection
-    ret1, im1, c1 = target.detect(im1)
-    ret2, im2, c2 = target.detect(im2)
+    ret1, im1, c1 = target.detect(im1, global_th=False, th_im=True)
+    ret2, im2, c2 = target.detect(im2, global_th=False, th_im=True)
     
     if not (ret1 and ret2):
         print('\nCircles in image {} or {} couldn\'t be detected'.format(
