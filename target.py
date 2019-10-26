@@ -63,7 +63,7 @@ def detect(im, global_th=True, th_im=False):
         _,bw = cv2.threshold(gray,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
     else:
         bw = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY,61,20)
+                                   cv2.THRESH_BINARY,61,25)
     
     
     # Create structuring element, apply morphological opening operation
@@ -91,7 +91,7 @@ def detect(im, global_th=True, th_im=False):
         
         # Check if approximated contour is stored with its area, perimeter
         # and centroid
-        if (len(approx) > 5) & (area > 100) & (area < 40000):
+        if (len(approx) > 5) & (area > 30) & (area < 40000):
             conts.append(cnt)
             areas.append(area)
             perimeters.append(perimeter)
