@@ -1,10 +1,9 @@
 import os
 import numpy as np
 import calibration
-import itertools
 
 
-base = os.path.relpath('Calibration datasets/Calibration test 19-06-08/')
+base = os.path.relpath('Calibration datasets/Calibration test 19-10-24/')
 paths = [os.path.join(base, x) for x in os.listdir(base) if 'data' in x]
 
 
@@ -15,8 +14,8 @@ calib = calibration.Calibration()
 f, J = calib.model()
 
 # US scan size
-w, h = 230., 400. # for 7 cm depth
-#w, h = 322., 409. # for 5 cm depth
+#w, h = 230., 400. # for 7 cm depth
+w, h = 321., 408. # for 5 cm depth
 
 # US image points to evaluate.
 c = np.array([w/2,h/2]) # Center of image
@@ -63,53 +62,14 @@ for i, path in enumerate(paths):
     rbl.append(T_I_T @ np.array([sx*bl[0],sy*bl[1],0,1])) # bottom left point
 
 
-print('\n-> Results for a total of {} calibrations:'.format(len(paths)))
-
-
-# Report mean RMS error of all equations
-print('\nMean RMS error of equations = {} mm'.format(rms.mean()))
-
-
-# Calculate calibration reproducibility precision at the five image points
 rc = np.array(rc)
-errc = np.linalg.norm(rc-rc.mean(0),axis=1)
-
 rtr = np.array(rtr)
-errtr = np.linalg.norm(rtr-rtr.mean(0),axis=1)
-
 rtl = np.array(rtl)
-errtl = np.linalg.norm(rtl-rtl.mean(0),axis=1)
-
 rbr = np.array(rbr)
-errbr = np.linalg.norm(rbr-rbr.mean(0),axis=1)
-
 rbl = np.array(rbl)
-errbl = np.linalg.norm(rbl-rbl.mean(0),axis=1)
 
-mu_CR1_mean = np.array([errc.mean(), errtr.mean(), errtl.mean(), errbr.mean(),
-                        errbl.mean()]).mean()
-print('\n\u03BC_CR1 at center = {} mm'.format(errc.mean()))
-print('\u03BC_CR1 at bottom right = {} mm'.format(errbr.mean()))
-print('\u03BC_CR1 mean = {} mm'.format(mu_CR1_mean))
-
-
-# Calculate precision with all possible pairs of calibrations in each point
-errc2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
-                  itertools.combinations(rc,2)])
-errtr2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
-                   itertools.combinations(rtr,2)])
-errtl2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
-                   itertools.combinations(rtl,2)])
-errbr2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
-                   itertools.combinations(rbr,2)])
-errbl2 = np.array([np.linalg.norm(p1-p2) for p1, p2 in 
-                   itertools.combinations(rbl,2)])
-
-mu_CR2_mean = np.array([errc2.mean(), errtr2.mean(), errtl2.mean(), 
-                        errbr2.mean(), errbl2.mean()]).mean()
-print('\n\u03BC_CR2 at center = {}'.format(errc2.mean()))
-print('\u03BC_CR2 at bottom right corner = {}'.format(errbr2.mean()))
-print('\u03BC_CR2 mean = {} mm'.format(mu_CR2_mean))
+# Save report of calibration assessment
+calib.writeReport(os.path.join(base,'report.txt'), rms, rc, rtr, rtl, rbr, rbl)
 
 
 
