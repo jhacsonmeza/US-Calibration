@@ -68,8 +68,8 @@ for im1n, im2n in zip(I1,I2):
     # Xo (origin of target frame), Xx (point in x-axis direction), and
     # Xy (point in y-axis direction).
     Xo, Xx, Xy = target.label(X)
-    errs.append([abs(np.linalg.norm(Xo-Xx)-25)/25,
-                 abs(np.linalg.norm(Xo-Xy)-40)/40])
+    errs.append([abs(np.linalg.norm(Xo-Xx)-25),
+                 abs(np.linalg.norm(Xo-Xy)-40)])
     
     # Target pose estimation relative to the left camera/world frame
     R_T_W, t_T_W = target.getPose(Xo, Xx, Xy)
@@ -90,7 +90,7 @@ for im1n, im2n in zip(I1,I2):
         
 
 cv2.destroyAllWindows()
-print('Errors: {}'.format(np.array(errs).mean(0)))
+print('Absolute error of distances: {}'.format(np.array(errs).mean(0)))
 
 # Save variables
 np.save(os.path.join(base,'target_pose.npy'),np.dstack(T_T_W).transpose(2,0,1))
