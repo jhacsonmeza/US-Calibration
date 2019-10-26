@@ -26,7 +26,7 @@ for imn in I:
     
     im = cv2.imread(imn, 0)
 #    imc = im[67:67+400,293:293+230] # 7cm depth
-    imc = im[67:67+409,247:247+322] # 5cm depth
+    imc = im[67:67+408,247:247+321] # 5cm depth
     
     cv2.imwrite('{}/{}.{}'.format(storage_path, image_name[0], 
                 image_name[1]), imc)
