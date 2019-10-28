@@ -160,19 +160,23 @@ class Calibration:
         '''
         Compute a least squares initial estimation of the US calibration:
         min||Ax-b|| where
-        * A = [ui*R_T_Wi, vi*R_T_Wi, R_T_Wi, -I] is a 3n x 12 matrix (n>=4).
-        * x = [sx*R_I_T[:,0], sy*R_I_T[:,1], t_I_T, t_W_F] is a 12 x 1 vector. 
+        * A = [ui*R_T_Wi, vi*R_T_Wi, R_T_Wi, I] is a 3n x 12 matrix (n>=4).
+        * x = [sx*R_I_T[:,0], sy*R_I_T[:,1], t_I_T, t_W_F] is a 12 x 1 vector.
         * and b = [-t_T_W] is a 3n x 1 vector.
+        
+        Based on analyticLeastSquaresEstimate function from:
+        https://github.com/zivy/LSQRRecipes/blob/master/parametersEstimators/
+        SinglePointTargetUSCalibrationParametersEstimator.cxx#L120
         '''
         
-        # create the A and B matrices
+        # create the A and b matrices
         A = []
         b = []
         for ptsi, T_T_Wi in zip(self.pts, self.T_T_W):
             
             R_T_W, t_T_W = T_T_Wi[:3,:3], T_T_Wi[:3,-1]
         
-            A.append(np.c_[ptsi[0]*R_T_W, ptsi[1]*R_T_W, R_T_W, -np.eye(3)])
+            A.append(np.c_[ptsi[0]*R_T_W, ptsi[1]*R_T_W, R_T_W, np.eye(3)])
             b.append(-t_T_W)
         
         
