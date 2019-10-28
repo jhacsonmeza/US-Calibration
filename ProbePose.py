@@ -7,7 +7,7 @@ import scipy.io as sio
 
 
 # Root path
-base = os.path.relpath('Calibration datasets/Calibration test 19-10-24/data1')
+base = os.path.relpath('Datasets/19-10-24/data1')
 
 
 # Set window name and size

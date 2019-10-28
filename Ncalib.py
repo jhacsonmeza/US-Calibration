@@ -3,7 +3,7 @@ import numpy as np
 import calibration
 
 
-base = os.path.relpath('Calibration datasets/Calibration test 19-10-24/')
+base = os.path.relpath('Datasets/19-10-24/')
 paths = [os.path.join(base, x) for x in os.listdir(base) if 'data' in x]
 
 

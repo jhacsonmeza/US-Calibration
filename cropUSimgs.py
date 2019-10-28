@@ -10,7 +10,7 @@ import cv2
 import glob
 
 
-base = os.path.relpath('Calibration datasets/Calibration test 19-09-12/data2')
+base = os.path.relpath('Datasets/19-09-12/data2')
 
 
 
