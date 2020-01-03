@@ -107,49 +107,41 @@ def detect(im, global_th=True, th_im=False):
     
     
     
-    # As targets are concentric circles, both circles have the same coordinate 
-    # center, and distance between these centers should be zero
-    d = np.array([])
+    # Traget is composed of three circles. Each circle in turn is composed of
+    # two concentric circles (a black and a white circle) which have the sames
+    # cooridnate center, and the distance between they should be zero
+    dist = np.array([])
+    ind = np.array([], np.int)
     for i in range(len(c)-1):
-        d = np.append(d,np.linalg.norm(c[i]-c[i+1]))
-      
-    # Take the first 5 contours with smaller neighboring centers distances,
-    # which would be potential circles
-    ind = np.argsort(d)[:5] # Index of smaller distances
-    c = c[ind]
-    circ = conts[ind] # Potential 5 contours to be circles
-    areas = areas[ind]
-    perimeters = perimeters[ind]
-    
-    
-    # Evaluate circularity criteria. For a circle R = 1
-    R = 4*np.pi*areas/perimeters**2
-    
-    # Adjust a circle in the contours and save the radius
-    r = np.array([])
-    for cnt  in circ:
-        _, radius = cv2.minEnclosingCircle(cnt)
-        r = np.append(r,radius)
+        d = np.linalg.norm(c[i]-c[i+1]) # Distance between adjacent contours
         
+        # If distance is smaller than a threshold, save value and index
+        if d < 2:
+            dist = np.append(dist, d)
+            ind = np.append(ind, i)
     
-    # To take the three circles between the five contours, area, circularity
-    # and the adjusted radius in three of the five contours should have 
-    # approximately the same values. 
-    # Subtracting and dividing by the median in each feature measured and 
-    # adding them, the three smaller values are the three circles.
-    v = abs(np.median(areas) - areas)/np.median(areas) + \
-    abs(np.median(R) - R)/np.median(R) + abs(np.median(r) - r)/np.median(r)
-    
-    # Take the three smaller elements of v
-    ind = np.argsort(v)[:3]
-    c = c[ind] # Update centroids
-    circ = circ[ind] # Update circle contours
-    
-    
-    # Check if detection succeeds or fail.
-    # If at least one element in v is larger than 0.35, the three circles were
-    # not detected. This threshold value is empirical.
-    ret = False if sum(v[ind] > sum(v)*0.3) else True
+    # Evaluate the amount of circle candidates
+    ret = True
+    if len(dist) == 3: # In this case we have our three circles
+        circ = conts[ind] # Contours of the circles
+        c = c[ind] # Centers of the circles
+        
+    elif len(dist) > 3: # In this case we have the circles and other contours
+        # Area and perimeter of the contours of our three circles should have
+        # appriximately the same values. We select the three smaller values
+        # of subtracting the median from both area and perimter
+        score = abs(np.median(areas[ind]) - areas[ind])/np.median(areas[ind]) \
+        + abs(np.median(perimeters[ind]) - perimeters[ind])/np.median(
+                perimeters[ind])
+        
+        ind = ind[np.argsort(score)[:3]] # Indices of smaller three values
+        circ = conts[ind] # Contours of the circles
+        c = c[ind] # Centers of the circles
+        
+    elif len(dist) < 3:
+        ret = False
+        circ = conts[ind] # Contours of the circles
+        c = c[ind] # Centers of the circles
     
         
     # Draw bounding boxes in the detections
