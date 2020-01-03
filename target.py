@@ -120,13 +120,10 @@ def detect(im, global_th=True, th_im=False):
             dist = np.append(dist, d)
             ind = np.append(ind, i)
     
-    # Evaluate the amount of circle candidates
+    
+    # Find our circles if there are more than three contours
     ret = True
-    if len(dist) == 3: # In this case we have our three circles
-        circ = conts[ind] # Contours of the circles
-        c = c[ind] # Centers of the circles
-        
-    elif len(dist) > 3: # In this case we have the circles and other contours
+    if len(dist) > 3: # In this case we have the circles and other contours
         # Area and perimeter of the contours of our three circles should have
         # appriximately the same values. We select the three smaller values
         # of subtracting the median from both area and perimter
@@ -135,13 +132,11 @@ def detect(im, global_th=True, th_im=False):
                 perimeters[ind])
         
         ind = ind[np.argsort(score)[:3]] # Indices of smaller three values
-        circ = conts[ind] # Contours of the circles
-        c = c[ind] # Centers of the circles
         
-    elif len(dist) < 3:
-        ret = False
-        circ = conts[ind] # Contours of the circles
-        c = c[ind] # Centers of the circles
+    
+    # Obtain the contours and center coordinates of the circles
+    circ = conts[ind]
+    c = c[ind]
     
         
     # Draw bounding boxes in the detections
