@@ -1,0 +1,13 @@
+# Paths configuration
+root_path: "dataset" # Root path of data
+right_folder: "R" # Folder with images of right camera
+left_folder: "L" # Folder with images of left camera
+us_path: "UScrop" # Folder with ultrasound images
+
+# Calibration parameters
+# You can use a .npz file or a .mat if calibration is made with Matlab
+params_file: "cam1_cam2.npz"
+
+# Size of the ultrasound image
+w: 321
+h: 408

@@ -6,10 +6,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
-base = os.path.relpath('Datasets/19-10-24/data1')
+# Load config file
+with open('config.yaml','r') as file:
+    config = yaml.safe_load(file)
 
 
-I = target.natsort(glob.glob(os.path.join(base,'UScrop','*.bmp')))
+base = os.path.relpath(config['root_path'])
+I = target.natsort(glob.glob(os.path.join(base,config['us_path'],'*')))
 
 pts =[]
 for imn in I:

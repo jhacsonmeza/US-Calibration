@@ -3,7 +3,12 @@ import numpy as np
 import calibration
 
 
-base = os.path.relpath('Datasets/19-10-24/')
+# Load config file
+with open('config.yaml','r') as file:
+    config = yaml.safe_load(file)
+
+
+base = os.path.relpath(config['root_path'])
 paths = [os.path.join(base, x) for x in os.listdir(base) if 'data' in x]
 
 
@@ -14,8 +19,7 @@ calib = calibration.Calibration()
 f, J = calib.model()
 
 # US scan size
-#w, h = 230., 400. # for 7 cm depth
-w, h = 321., 408. # for 5 cm depth
+w, h = config['w'], config['h']
 
 # US image points to evaluate.
 c = np.array([w/2,h/2]) # Center of image
@@ -75,7 +79,7 @@ calib.writeReport(os.path.join(base,'report.txt'), rms, rc, rtr, rtl, rbr, rbl)
 
 # Estimate final parameters
 xhat = np.array(xhat)
-xhatm = xhat.mean(0) # Mean of all calibration parameters of each calibration
+xhatm = xhat.mean(0) # Mean of all calibration parameters of each dataset
 
 sxm, sym = xhatm[0], xhatm[1]
 T_I_Tm = calib.T(xhatm[2], xhatm[3], xhatm[4], xhatm[5], xhatm[6], xhatm[7])
