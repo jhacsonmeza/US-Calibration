@@ -12,7 +12,7 @@ with open('config.yaml','r') as file:
 
 
 base = os.path.relpath(config['root_path'])
-I = target.natsort(glob.glob(os.path.join(base,config['us_path'],'*')))
+I = target.natsort(glob.glob(os.path.join(base,config['us_folder'],'*')))
 
 pts =[]
 for imn in I:

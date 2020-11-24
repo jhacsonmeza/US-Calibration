@@ -126,7 +126,7 @@ def detect(im, global_th=True, th_im=False):
     if len(dist) > 3: # In this case we have the circles and other contours
         # Area and perimeter of the contours of our three circles should have
         # appriximately the same values. We select the three smaller values
-        # of subtracting the median from both area and perimter
+        # of subtracting the median from both area and perimeter
         score = abs(np.median(areas[ind]) - areas[ind])/np.median(areas[ind]) \
         + abs(np.median(perimeters[ind]) - perimeters[ind])/np.median(
                 perimeters[ind])
